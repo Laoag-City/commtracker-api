@@ -1,0 +1,6 @@
+/.env
+/combined.log
+/error.log
+/exceptions.log
+/node_modules
+/package-lock.json
