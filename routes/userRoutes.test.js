@@ -1,28 +1,34 @@
 const request = require('supertest');
-const bcrypt = require('bcrypt');
 const express = require('express');
 const userRoutes = require('../routes/userRoutes');
 const app = express();
 app.use(express.json());
 app.use('/users', userRoutes);
 
-// Mock userController functions
-jest.mock('../controllers/userController', () => ({
-  register: jest.fn(async (req, res) => {
-    const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    res.status(201).json({ message: 'User registered successfully', password: hashedPassword });
-  }),
-  login: jest.fn(async (req, res) => {
-    const { username, password } = req.body;
-    const storedPasswordHash = await bcrypt.hash('correctpassword', 10);
-    const isPasswordValid = await bcrypt.compare(password, storedPasswordHash);
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid username or password' });
-    }
-    res.status(200).json({ message: 'User logged in successfully' });
-  }),
-}));
+// Mock bcrypt inside userController to avoid out-of-scope variable issues
+jest.mock('../controllers/userController', () => {
+  const bcrypt = {
+    hash: jest.fn(async (password, saltRounds) => `hashed_${password}`),
+    compare: jest.fn(async (password, hashedPassword) => hashedPassword === `hashed_${password}`),
+  };
+
+  return {
+    register: jest.fn(async (req, res) => {
+      const { username, password } = req.body;
+      const hashedPassword = await bcrypt.hash(password, 10);
+      res.status(201).json({ message: 'User registered successfully', password: hashedPassword });
+    }),
+    login: jest.fn(async (req, res) => {
+      const { username, password } = req.body;
+      const storedPasswordHash = await bcrypt.hash('correctpassword', 10);
+      const isPasswordValid = await bcrypt.compare(password, storedPasswordHash);
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: 'Invalid username or password' });
+      }
+      res.status(200).json({ message: 'User logged in successfully' });
+    }),
+  };
+});
 
 describe('User Routes', () => {
   describe('POST /users/register', () => {
@@ -34,7 +40,7 @@ describe('User Routes', () => {
       expect(response.statusCode).toBe(201);
       expect(response.body).toHaveProperty('message', 'User registered successfully');
       expect(response.body).toHaveProperty('password');
-      expect(await bcrypt.compare('testpass', response.body.password)).toBe(true);
+      expect(response.body.password).toBe('hashed_testpass');
     });
   });
 
