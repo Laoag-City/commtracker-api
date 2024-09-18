@@ -1,7 +1,15 @@
 const express = require('express');
 const { check, validationResult } = require('express-validator');
+const rateLimit = require('express-rate-limit');
 const router = express.Router();
 const userController = require('../controllers/userController');
+
+// Rate limiter for login route
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 requests per windowMs
+  message: 'Too many login attempts from this IP, please try again later.',
+});
 
 // Helper function to handle validation errors
 const validateRequest = (req, res, next) => {
@@ -18,7 +26,7 @@ if (process.env.NODE_ENV !== 'production') {
     '/register',
     [
       check('username', 'Username is required').notEmpty(),
-      check('password', 'Password is required').notEmpty(),
+      check('password', 'Password must be at least 6 characters long').isLength({ min: 6 }),
     ],
     validateRequest,
     async (req, res, next) => {
@@ -31,12 +39,13 @@ if (process.env.NODE_ENV !== 'production') {
   );
 }
 
-// Login route
+// Login route with rate limiter
 router.post(
   '/login',
+  loginLimiter,
   [
     check('username', 'Username is required').notEmpty(),
-    check('password', 'Password is required').notEmpty(),
+    check('password', 'Password must be at least 6 characters long').isLength({ min: 6 }),
   ],
   validateRequest,
   async (req, res, next) => {

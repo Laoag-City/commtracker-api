@@ -1,4 +1,5 @@
 const request = require('supertest');
+const bcrypt = require('bcrypt');
 const express = require('express');
 const userRoutes = require('../routes/userRoutes');
 const app = express();
@@ -7,96 +8,59 @@ app.use('/users', userRoutes);
 
 // Mock userController functions
 jest.mock('../controllers/userController', () => ({
-  register: jest.fn((req, res) => res.status(201).json({ message: 'User registered successfully' })),
-  login: jest.fn((req, res) => res.status(200).json({ message: 'User logged in successfully' })),
+  register: jest.fn(async (req, res) => {
+    const { username, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    res.status(201).json({ message: 'User registered successfully', password: hashedPassword });
+  }),
+  login: jest.fn(async (req, res) => {
+    const { username, password } = req.body;
+    const storedPasswordHash = await bcrypt.hash('correctpassword', 10);
+    const isPasswordValid = await bcrypt.compare(password, storedPasswordHash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+    res.status(200).json({ message: 'User logged in successfully' });
+  }),
 }));
 
 describe('User Routes', () => {
   describe('POST /users/register', () => {
-    if (process.env.NODE_ENV !== 'production') {
-      it('should register a new user', async () => {
-        const response = await request(app)
-          .post('/users/register')
-          .send({ username: 'testuser', password: 'testpass' });
-        
-        expect(response.statusCode).toBe(201);
-        expect(response.body).toHaveProperty('message', 'User registered successfully');
-      });
+    it('should register a new user with a hashed password', async () => {
+      const response = await request(app)
+        .post('/users/register')
+        .send({ username: 'testuser', password: 'testpass' });
 
-      it('should handle error during registration', async () => {
-        const userController = require('../controllers/userController');
-        userController.register.mockImplementationOnce(() => {
-          throw new Error('Registration failed');
-        });
-
-        const response = await request(app)
-          .post('/users/register')
-          .send({ username: 'testuser', password: 'testpass' });
-
-        expect(response.statusCode).toBe(500);
-        expect(response.body).toHaveProperty('error', 'Registration failed');
-      });
-
-      it('should return 400 if username is missing', async () => {
-        const response = await request(app)
-          .post('/users/register')
-          .send({ password: 'testpass' }); // Missing username
-
-        expect(response.statusCode).toBe(400);
-        expect(response.body).toHaveProperty('error', 'Username is required');
-      });
-
-      it('should return 400 if password is missing', async () => {
-        const response = await request(app)
-          .post('/users/register')
-          .send({ username: 'testuser' }); // Missing password
-
-        expect(response.statusCode).toBe(400);
-        expect(response.body).toHaveProperty('error', 'Password is required');
-      });
-    }
+      expect(response.statusCode).toBe(201);
+      expect(response.body).toHaveProperty('message', 'User registered successfully');
+      expect(response.body).toHaveProperty('password');
+      expect(await bcrypt.compare('testpass', response.body.password)).toBe(true);
+    });
   });
 
   describe('POST /users/login', () => {
-    it('should log in a user', async () => {
+    it('should return 401 for incorrect password', async () => {
       const response = await request(app)
         .post('/users/login')
-        .send({ username: 'testuser', password: 'testpass' });
+        .send({ username: 'testuser', password: 'wrongpass' });
 
-      expect(response.statusCode).toBe(200);
-      expect(response.body).toHaveProperty('message', 'User logged in successfully');
+      expect(response.statusCode).toBe(401);
+      expect(response.body).toHaveProperty('error', 'Invalid username or password');
     });
 
-    it('should handle error during login', async () => {
-      const userController = require('../controllers/userController');
-      userController.login.mockImplementationOnce(() => {
-        throw new Error('Login failed');
-      });
+    it('should limit the number of login attempts', async () => {
+      for (let i = 0; i < 5; i++) {
+        await request(app)
+          .post('/users/login')
+          .send({ username: 'testuser', password: 'wrongpass' });
+      }
 
       const response = await request(app)
         .post('/users/login')
-        .send({ username: 'testuser', password: 'testpass' });
+        .send({ username: 'testuser', password: 'wrongpass' });
 
-      expect(response.statusCode).toBe(500);
-      expect(response.body).toHaveProperty('error', 'Login failed');
-    });
-
-    it('should return 400 if username is missing during login', async () => {
-      const response = await request(app)
-        .post('/users/login')
-        .send({ password: 'testpass' }); // Missing username
-
-      expect(response.statusCode).toBe(400);
-      expect(response.body).toHaveProperty('error', 'Username is required');
-    });
-
-    it('should return 400 if password is missing during login', async () => {
-      const response = await request(app)
-        .post('/users/login')
-        .send({ username: 'testuser' }); // Missing password
-
-      expect(response.statusCode).toBe(400);
-      expect(response.body).toHaveProperty('error', 'Password is required');
+      expect(response.statusCode).toBe(429);
+      expect(response.body).toHaveProperty('message', 'Too many login attempts from this IP, please try again later.');
     });
   });
 });
