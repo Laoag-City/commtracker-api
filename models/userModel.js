@@ -1,10 +1,14 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+// Reference to Department schema
+const ObjectId = mongoose.Schema.Types.ObjectId;
+
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  userrole: { type: String, required: true}
+  userrole: { type: String, required: true},
+  deptId: { type: ObjectId, ref: 'Department', required: true }, // Reference to Department _id
 },{collection: 'users',
   timestamps: true
 });
