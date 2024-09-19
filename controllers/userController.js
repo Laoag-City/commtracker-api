@@ -7,9 +7,16 @@ const secretKey = config.jwtSecret;
 
 exports.register = async (req, res) => {
   try {
-    const user = new User(req.body);
+    const { username, password, userrole, deptId } = req.body;
+
+    // Create a new user, including deptId
+    const user = new User({ username, password, userrole, deptId });
     await user.save();
-    const token = jwt.sign({ _id: user._id.toString() }, secretKey);
+
+    // Generate JWT
+    const token = jwt.sign({ _id: user._id.toString(), deptId: user.deptId }, secretKey);
+
+    // Send user data with token
     res.status(201).send({ user, token });
     logger.info('User registered successfully', { userId: user._id });
   } catch (error) {
@@ -20,13 +27,24 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const user = await User.findOne({ username: req.body.username });
-    if (!user || !(await user.comparePassword(req.body.password))) {
-      logger.warn('Login failed due to incorrect username or password', { username: req.body.username });
+    const { username, password } = req.body;
+
+    // Find the user by username
+    const user = await User.findOne({ username }).populate('deptId'); // Populate deptId if needed
+    if (!user || !(await user.comparePassword(password))) {
+      logger.warn('Login failed due to incorrect username or password', { username });
       return res.status(401).json({ message: 'Incorrect username or password' });
     }
-    const token = jwt.sign({ _id: user._id, username: user.username }, secretKey, { expiresIn: '1d' });
-    res.send({ _id: user._id, username: user.username, userrole: user.userrole, token });
+
+    // Generate JWT with deptId included
+    const token = jwt.sign(
+      { _id: user._id, username: user.username, deptId: user.deptId },
+      secretKey,
+      { expiresIn: '1d' }
+    );
+
+    // Send user details and token
+    res.send({ _id: user._id, username: user.username, userrole: user.userrole, deptId: user.deptId, token });
     logger.info('User logged in successfully', { userId: user._id });
   } catch (error) {
     logger.error('Login failed', { error: error.message });
