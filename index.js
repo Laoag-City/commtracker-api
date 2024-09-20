@@ -3,12 +3,24 @@ const cors = require('cors');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const helmet = require('helmet');  // Import Helmet
 const userRoutes = require('./routes/userRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
 const config = require('./config');
 const logger = require('./utils/logger');
 
 const app = express();
+// Use Helmet to secure HTTP headers
+app.use(helmet());
+
+/*
+app.use(helmet({
+  contentSecurityPolicy: false,  // Example: Disable CSP if needed for your app
+  // You can customize other security headers here
+}));
+
+*/
+
 app.use(cors());
 app.use(bodyParser.json());
 
