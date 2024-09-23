@@ -1,5 +1,5 @@
 const Department = require('../models/departmentModel');
-const logger = require('../utils/logger'); // Assuming you have a logger
+const logger = require('../utils/logger'); 
 
 // Get all departments
 exports.getAllDepartments = async (req, res) => {
