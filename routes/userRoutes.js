@@ -3,6 +3,7 @@ const { check, validationResult } = require('express-validator');
 const rateLimit = require('express-rate-limit');
 const router = express.Router();
 const userController = require('../controllers/userController');
+const authenticateJWT = require('../middlewares/authMiddleware');
 
 // Rate limiter for login route
 const loginLimiter = rateLimit({
@@ -57,5 +58,50 @@ router.post(
     }
   }
 );
+
+// Get all users (protected route)
+router.get('/', authenticateJWT, async (req, res, next) => {
+  try {
+    await userController.getAllUsers(req, res);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get a user by ID (protected route)
+router.get('/:id', authenticateJWT, async (req, res, next) => {
+  try {
+    await userController.getUserById(req, res);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update a user by ID (protected route)
+router.put(
+  '/:id',
+  authenticateJWT,
+  [
+    check('username', 'Username is required').optional().notEmpty(),
+    check('password', 'Password must be at least 6 characters long').optional().isLength({ min: 6 }),
+  ],
+  validateRequest,
+  async (req, res, next) => {
+    try {
+      await userController.updateUser(req, res);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+// Delete a user by ID (protected route)
+router.delete('/:id', authenticateJWT, async (req, res, next) => {
+  try {
+    await userController.deleteUser(req, res);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 module.exports = router;
