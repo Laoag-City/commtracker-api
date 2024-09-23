@@ -1,0 +1,23 @@
+services:
+  comm-tracker-api:
+    container_name: comm-tracker-api
+    restart: always
+    build: .
+    ports:
+      - "3003:3003"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - node-tls:/node-tls
+    networks:
+      - prod-network
+
+volumes:
+  node-tls:
+    external: true
+    name: node-tls
+
+networks:
+  prod-network:
+    external: true
+    name: prod-network

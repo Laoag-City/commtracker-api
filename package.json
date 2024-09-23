@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "prod": "NODE_ENV=production node index.js",
+    "start": "node index.js"
   },
   "author": "Richard L. Alhama, kechie@eihcek.com",
   "license": "MIT",
