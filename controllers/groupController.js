@@ -30,7 +30,7 @@ exports.getAllGroups = async (req, res) => {
     res.status(200).json(groups);
     logger.info('Groups fetched successfully');
   } catch (error) {
-    logger.error('Error fetching groups', { error: error.message });
+    logger.error('Error fetching groups30-Jul-2024', { error: error.message });
     res.status(500).json({ message: 'Error fetching groups', error: error.message });
   }
 };

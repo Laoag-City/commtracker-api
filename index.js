@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');  // Import Helmet
 const userRoutes = require('./routes/userRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
+const groupRoutes = require('./routes/groupRoutes')
 const config = require('./config');
 const logger = require('./utils/logger');
 
@@ -26,7 +27,7 @@ app.use(bodyParser.json());
 
 app.use('/users', userRoutes);
 app.use('/departments', departmentRoutes);
-
+app.use('/groups', groupRoutes)
 app.get('/', (req, res) => {
   res.send('Laoag City Communications Tracking APi Server. Docs at <a href="https://apps.laoagcity.gov.ph/apidocs/commtracker">API Docs</a>');
 });
