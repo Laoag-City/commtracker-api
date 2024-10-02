@@ -21,12 +21,15 @@
     "express-validator": "^7.2.0",
     "helmet": "^7.1.0",
     "https": "^1.0.0",
+    "jest-mongoose-mock": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.6.3",
+    "mongodb-memory-server": "^10.0.1",
+    "mongoose": "^8.7.0",
     "winston": "^3.14.2"
   },
   "devDependencies": {
     "jest": "^29.7.0",
+    "jest-mock-extended": "^4.0.0-beta1",
     "nodemon": "^3.1.5",
     "supertest": "^7.0.0"
   }

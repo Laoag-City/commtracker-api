@@ -95,7 +95,9 @@ exports.updateUser = async (req, res) => {
     }
 
     user.username = username || user.username;
-    user.password = password ? await user.hashPassword(password) : user.password;
+    if (password) {
+      user.password = password;  // This will trigger the 'pre' save hook to hash the password
+    }
     user.userrole = userrole || user.userrole;
     user.deptId = deptId || user.deptId;
 

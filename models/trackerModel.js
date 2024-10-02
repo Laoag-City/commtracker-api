@@ -19,7 +19,7 @@ const trackerSchema = new mongoose.Schema({
   applicationTitle: { type: String, required: true },
   constructionPermitSignatories: [signatorySchema]
 }, {
-  collection: 'oscp-tracker',
+  collection: 'oscp-applications',
   timestamps: true
 });
 
