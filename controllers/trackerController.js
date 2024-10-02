@@ -56,7 +56,8 @@ exports.getTrackerById = async (req, res) => {
   
   // Get all trackers
   exports.getAllTrackers = async (req, res) => {
-    try {https://steamcommunity.com/id/eihcek/home/mitSignatories.signatory');
+    try {
+      const trackers = await Tracker.find().populate('constructionPermitSignatories.signatory');
       res.status(200).json(trackers);
       logger.info('Trackers fetched successfully');
     } catch (error) {
