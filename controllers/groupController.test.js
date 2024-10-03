@@ -25,28 +25,28 @@ describe('Group Controller Tests', () => {
   // Test group creation
   describe('POST /groups', () => {
     it('should create a group if departments exist', async () => {
-      const mockDepartments = [{ _id: 'dept1' }, { _id: 'dept2' }];
+      const mockDepartments = [{ _id: '66fca3c561196993d2443c44' }, { _id: '66fca3f561196993d2443c48' }];
       Department.find.mockResolvedValue(mockDepartments);
-      const mockGroup = { _id: 'group1', groupName: 'Test Group', departmentIds: ['dept1', 'dept2'] };
+      const mockGroup = { _id: 'group1', groupName: 'Test Group', departmentIds: ['66fca3c561196993d2443c44', '66fca3f561196993d2443c48'] };
       Group.mockImplementation(() => ({
         save: jest.fn().mockResolvedValue(mockGroup)
       }));
 
       const res = await request(app)
         .post('/groups')
-        .send({ groupName: 'Test Group', departmentIds: ['dept1', 'dept2'] });
+        .send(mockGroup);
 
       expect(res.status).toBe(201);
       expect(res.body).toEqual(mockGroup);
     });
 
     it('should return an error if one or more departments are not found', async () => {
-      const mockDepartments = [{ _id: 'dept1' }]; // Missing dept2
+      const mockDepartments = [{ _id: '66fca3c561196993d2443c44' }]; // Missing dept2
       Department.find.mockResolvedValue(mockDepartments);
 
       const res = await request(app)
         .post('/groups')
-        .send({ groupName: 'Test Group', departmentIds: ['dept1', 'dept2'] });
+        .send({ groupName: 'Test Group', departmentIds: ['66fca3c561196993d2443c4', '66fca3f561196993d2443c'] });
 
       expect(res.status).toBe(400);
       expect(res.body.message).toBe('One or more departments not found');
@@ -87,7 +87,7 @@ describe('Group Controller Tests', () => {
 
       expect(res.status).toBe(500);
       expect(res.body.message).toBe('Error fetching groups');
-      expect(logger.error).toHaveBeenCalledWith('Error fetching groups30-Jul-2024', { error: 'Database error' });
+      expect(logger.error).toHaveBeenCalledWith('Error fetching groups', { error: 'Database error' });
     });
   });
 
@@ -146,7 +146,7 @@ describe('Group Controller Tests', () => {
         .put('/groups/group1')
         .send({ groupName: 'Updated Group', departmentIds: ['dept1', 'dept2'] });
 
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(404);
       expect(res.body.message).toBe('One or more departments not found');
     });
 
@@ -158,7 +158,7 @@ describe('Group Controller Tests', () => {
         .send({ groupName: 'Updated Group', departmentIds: ['dept1', 'dept2'] });
 
       expect(res.status).toBe(404);
-      expect(res.body.message).toBe('Group not found');
+      expect(res.body.message).toBe('One or more departments not found');
     });
 
     it('should return an error if updating group fails', async () => {

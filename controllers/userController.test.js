@@ -44,7 +44,7 @@ describe('User Controller Tests', () => {
 
       const res = await request(app)
         .post('/users/register')
-        .send({ username: 'testuser', password: 'password', userrole: 'admin', deptId: mockUser.deptId });
+        .send({ username: 'usertest', password: 'password', userrole: 'admin', deptId: mockUser.deptId });
 
       expect(res.status).toBe(201);
       expect(res.body.token).toBe('mockToken');

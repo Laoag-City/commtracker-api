@@ -30,7 +30,7 @@ exports.getAllGroups = async (req, res) => {
     res.status(200).json(groups);
     logger.info('Groups fetched successfully');
   } catch (error) {
-    logger.error('Error fetching groups30-Jul-2024', { error: error.message });
+    logger.error('Error fetching groups', { error: error.message });
     res.status(500).json({ message: 'Error fetching groups', error: error.message });
   }
 };
@@ -55,7 +55,7 @@ exports.updateGroup = async (req, res) => {
   try {
     const departments = await Department.find({ _id: { $in: departmentIds } });
     if (departments.length !== departmentIds.length) {
-      return res.status(400).json({ message: 'One or more departments not found' });
+      return res.status(404).json({ message: 'One or more departments not found' });
     }
 
     const group = await Group.findByIdAndUpdate(
