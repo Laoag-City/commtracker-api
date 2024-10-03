@@ -6,6 +6,8 @@ const signatorySchema = new mongoose.Schema({
   signDate: { type: Date, default: Date.now },
   remarks: { type: String, default: '' },
   status: { type: String, default: '' }
+}, {
+  timestamps: true // This enables createdAt and updatedAt fields
 });
 
 const trackerSchema = new mongoose.Schema({
