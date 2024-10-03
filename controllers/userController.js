@@ -39,7 +39,7 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ username }).populate('deptId');
     if (!user || !(await user.comparePassword(password))) {
       logger.warn('Login failed due to incorrect username or password', { username });
-      return res.status(401).json({ message: 'Incorrect username or password' });
+      return res.status(401).json({ message: 'Incorrect username or password' });  // Fix: Return 401 for incorrect credentials
     }
 
     // Generate JWT with deptId included
@@ -80,11 +80,14 @@ exports.getUserById = async (req, res) => {
     res.status(200).json(user);
     logger.info('User fetched successfully', { userId: user._id });
   } catch (error) {
+    // Handle malformed ObjectId
+    if (error.name === 'CastError' && error.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'User not found' });
+    }
     logger.error('Error fetching user', { error: error.message });
     res.status(500).json({ message: 'Error fetching user' });
   }
 };
-
 // Update User by ID
 exports.updateUser = async (req, res) => {
   const { username, password, userrole, deptId } = req.body;

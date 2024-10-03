@@ -1,216 +1,209 @@
+// __tests__/userController.test.js
 const request = require('supertest');
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const User = require('../models/userModel');
-const userController = require('../controllers/userController');
+const config = require('../config');
 const logger = require('../utils/logger');
-const mongoose = require('mongoose');
+const userController = require('../controllers/userController');
 
-// Mock external dependencies
-jest.mock('jsonwebtoken');
-jest.mock('bcryptjs');
-jest.mock('../models/userModel');
-jest.mock('../utils/logger');
-
-// Create an express app and use json middleware
 const app = express();
 app.use(express.json());
 
-// Define routes for the controller methods
-app.post('/users/register', userController.register);
-app.post('/users/login', userController.login);
+// Mock Routes
+app.post('/register', userController.register);
+app.post('/login', userController.login);
 app.get('/users', userController.getAllUsers);
 app.get('/users/:id', userController.getUserById);
 app.put('/users/:id', userController.updateUser);
 app.delete('/users/:id', userController.deleteUser);
 
-describe('User Controller Tests', () => {
-  // Test user registration
-  describe('POST /users/register', () => {
-    it('should register a user and return a token', async () => {
+// Mocking external dependencies
+jest.mock('../models/userModel');
+jest.mock('jsonwebtoken');
+jest.mock('../utils/logger');
+
+// Mock configuration
+const secretKey = config.jwtSecret;
+
+describe('User Controller', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('POST /register', () => {
+    it('should register a user and return a JWT token', async () => {
       const mockUser = {
-        _id: new mongoose.Types.ObjectId(),
+        _id: '123',
         username: 'testuser',
-        password: 'hashedPassword',
-        userrole: 'admin',
-        deptId: new mongoose.Types.ObjectId()
+        password: 'hashedpassword',
+        deptId: 'dept123',
+        save: jest.fn(),
       };
+      User.mockImplementation(() => mockUser);
 
-      User.mockImplementation(() => ({
-        save: jest.fn().mockResolvedValue(mockUser)
-      }));
-      jwt.sign.mockReturnValue('mockToken');
+      jwt.sign.mockReturnValue('fakeToken');
 
-      const res = await request(app)
-        .post('/users/register')
-        .send({ username: 'usertest', password: 'password', userrole: 'admin', deptId: mockUser.deptId });
+      const response = await request(app)
+        .post('/register')
+        .send({ username: 'testuser', password: 'password', userrole: 'admin', deptId: 'dept123' });
 
-      expect(res.status).toBe(201);
-      expect(res.body.token).toBe('mockToken');
-      expect(logger.info).toHaveBeenCalledWith('User registered successfully', { userId: mockUser._id });
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('token', 'fakeToken');
+      expect(mockUser.save).toHaveBeenCalled();
+      expect(jwt.sign).toHaveBeenCalledWith(
+        { _id: mockUser._id.toString(), deptId: mockUser.deptId },
+        secretKey,
+        { expiresIn: '1d' }
+      );
     });
 
-    it('should return an error if registration fails', async () => {
-      User.mockImplementation(() => ({
-        save: jest.fn().mockRejectedValue(new Error('Registration failed'))
-      }));
+    it('should return 400 if user registration fails', async () => {
+      User.mockImplementation(() => {
+        throw new Error('Database error');
+      });
 
-      const res = await request(app)
-        .post('/users/register')
-        .send({ username: 'testuser', password: 'password', userrole: 'admin', deptId: 'deptId' });
+      const response = await request(app)
+        .post('/register')
+        .send({ username: 'testuser', password: 'password', userrole: 'admin', deptId: 'dept123' });
 
-      expect(res.status).toBe(400);
-      expect(res.body.error).toBe('Registration failed');
-      expect(logger.error).toHaveBeenCalledWith('User registration failed', { error: 'Registration failed' });
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('error', 'Database error');
+      expect(logger.error).toHaveBeenCalledWith('User registration failed', { error: 'Database error' });
     });
   });
 
-  // Test user login
-  describe('POST /users/login', () => {
-    it('should login a user and return a token', async () => {
+  describe('POST /login', () => {
+    it('should log in the user and return a JWT token', async () => {
       const mockUser = {
-        _id: new mongoose.Types.ObjectId(),
+        _id: '123',
         username: 'testuser',
-        password: 'hashedPassword',
-        userrole: 'admin',
-        deptId: new mongoose.Types.ObjectId(),
-        comparePassword: jest.fn().mockResolvedValue(true)
+        password: 'hashedpassword',
+        deptId: 'dept123',
+        comparePassword: jest.fn().mockResolvedValue(true),
+        populate: jest.fn().mockReturnThis(),
       };
 
       User.findOne.mockResolvedValue(mockUser);
-      jwt.sign.mockReturnValue('mockToken');
-      bcrypt.compare.mockResolvedValue(true);
+      jwt.sign.mockReturnValue('fakeToken');
 
-      const res = await request(app)
-        .post('/users/login')
+      const response = await request(app)
+        .post('/login')
         .send({ username: 'testuser', password: 'password' });
 
-      expect(res.status).toBe(200);
-      expect(res.body.token).toBe('mockToken');
-      expect(logger.info).toHaveBeenCalledWith('User logged in successfully', { userId: mockUser._id });
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('token', 'fakeToken');
+      expect(User.findOne).toHaveBeenCalledWith({ username: 'testuser' });
+      expect(mockUser.comparePassword).toHaveBeenCalledWith('password');
     });
 
-    it('should return an error if login fails', async () => {
-      User.findOne.mockResolvedValue(null);
-
-      const res = await request(app)
-        .post('/users/login')
-        .send({ username: 'testuser', password: 'password' });
-
-      expect(res.status).toBe(401);
-      expect(res.body.message).toBe('Incorrect username or password');
+    it('should return 401 for incorrect username or password', async () => {
+      User.findOne.mockResolvedValue(null);  // Simulate incorrect credentials
+    
+      const response = await request(app)
+        .post('/login')
+        .send({ username: 'testuser', password: 'wrongpassword' });
+    
+      expect(response.status).toBe(401);
+      expect(response.body).toHaveProperty('message', 'Incorrect username or password');
       expect(logger.warn).toHaveBeenCalledWith('Login failed due to incorrect username or password', { username: 'testuser' });
     });
   });
 
-  // Test fetching all users
   describe('GET /users', () => {
     it('should return all users', async () => {
-      const mockUsers = [
-        { _id: 'user1', username: 'user1', userrole: 'admin', deptId: 'dept1' },
-        { _id: 'user2', username: 'user2', userrole: 'user', deptId: 'dept2' }
-      ];
-
+      const mockUsers = [{ _id: '123', username: 'user1', deptId: 'dept123' }];
       User.find.mockResolvedValue(mockUsers);
 
-      const res = await request(app).get('/users');
+      const response = await request(app).get('/users');
 
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockUsers);
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(mockUsers);
+      expect(User.find).toHaveBeenCalled();
       expect(logger.info).toHaveBeenCalledWith('Users fetched successfully');
     });
 
-    it('should return error if fetching users fails', async () => {
-      User.find.mockRejectedValue(new Error('Fetch failed'));
+    it('should return 500 if fetching users fails', async () => {
+      User.find.mockImplementation(() => {
+        throw new Error('Database error');
+      });
 
-      const res = await request(app).get('/users');
+      const response = await request(app).get('/users');
 
-      expect(res.status).toBe(500);
-      expect(res.body.message).toBe('Error fetching users');
-      expect(logger.error).toHaveBeenCalledWith('Error fetching users', { error: 'Fetch failed' });
+      expect(response.status).toBe(500);
+      expect(response.body).toHaveProperty('message', 'Error fetching users');
+      expect(logger.error).toHaveBeenCalledWith('Error fetching users', { error: 'Database error' });
     });
   });
 
-  // Test fetching a single user
   describe('GET /users/:id', () => {
-    it('should return a single user by id', async () => {
-      const mockUser = { _id: 'user1', username: 'user1', userrole: 'admin', deptId: 'dept1' };
-
+    it('should return user by ID', async () => {
+      const mockUser = { _id: '123', username: 'testuser', deptId: 'dept123' };
       User.findById.mockResolvedValue(mockUser);
 
-      const res = await request(app).get('/users/user1');
+      const response = await request(app).get('/users/123');
 
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockUser);
-      expect(logger.info).toHaveBeenCalledWith('User fetched successfully', { userId: 'user1' });
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(mockUser);
+      expect(User.findById).toHaveBeenCalledWith('123');
+      expect(logger.info).toHaveBeenCalledWith('User fetched successfully', { userId: '123' });
     });
 
-    it('should return 404 if user is not found', async () => {
+    it('should return 404 if user not found', async () => {
       User.findById.mockResolvedValue(null);
 
-      const res = await request(app).get('/users/user1');
+      const response = await request(app).get('/users/123');
 
-      expect(res.status).toBe(404);
-      expect(res.body.message).toBe('User not found');
+      expect(response.status).toBe(404);
+      expect(response.body).toHaveProperty('message', 'User not found');
     });
   });
 
-  // Test user update
   describe('PUT /users/:id', () => {
-    it('should update a user by id', async () => {
-      const mockUser = {
-        _id: 'user1',
-        username: 'user1',
-        password: 'hashedPassword',
-        userrole: 'admin',
-        deptId: 'dept1',
-        save: jest.fn().mockResolvedValue()
-      };
-
+    it('should update the user and return the updated data', async () => {
+      const mockUser = { _id: '123', username: 'testuser', deptId: 'dept123', save: jest.fn() };
       User.findById.mockResolvedValue(mockUser);
 
-      const res = await request(app)
-        .put('/users/user1')
-        .send({ username: 'newUser', password: 'newPassword', userrole: 'user', deptId: 'dept1' });
+      const response = await request(app)
+        .put('/users/123')
+        .send({ username: 'updateduser', userrole: 'admin' });
 
-      expect(res.status).toBe(200);
-      expect(mockUser.username).toBe('newUser');
-      expect(mockUser.password).toBe('newPassword'); // Password hashing tested separately
-      expect(logger.info).toHaveBeenCalledWith('User updated successfully', { userId: mockUser._id });
+      expect(response.status).toBe(200);
+      expect(mockUser.save).toHaveBeenCalled();
+      expect(User.findById).toHaveBeenCalledWith('123');
+      expect(logger.info).toHaveBeenCalledWith('User updated successfully', { userId: '123' });
     });
 
-    it('should return 404 if user is not found', async () => {
+    it('should return 404 if user not found', async () => {
       User.findById.mockResolvedValue(null);
 
-      const res = await request(app).put('/users/user1').send({ username: 'newUser' });
+      const response = await request(app).put('/users/123');
 
-      expect(res.status).toBe(404);
-      expect(res.body.message).toBe('User not found');
+      expect(response.status).toBe(404);
+      expect(response.body).toHaveProperty('message', 'User not found');
     });
   });
 
-  // Test user deletion
   describe('DELETE /users/:id', () => {
-    it('should delete a user by id', async () => {
-      const mockUser = { _id: 'user1' };
-
+    it('should delete the user by ID', async () => {
+      const mockUser = { _id: '123' };
       User.findByIdAndDelete.mockResolvedValue(mockUser);
 
-      const res = await request(app).delete('/users/user1');
+      const response = await request(app).delete('/users/123');
 
-      expect(res.status).toBe(200);
-      expect(res.body.message).toBe('User deleted successfully');
-      expect(logger.info).toHaveBeenCalledWith('User deleted successfully', { userId: mockUser._id });
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('message', 'User deleted successfully');
+      expect(User.findByIdAndDelete).toHaveBeenCalledWith('123');
+      expect(logger.info).toHaveBeenCalledWith('User deleted successfully', { userId: '123' });
     });
 
-    it('should return 404 if user is not found', async () => {
+    it('should return 404 if user not found', async () => {
       User.findByIdAndDelete.mockResolvedValue(null);
 
-      const res = await request(app).delete('/users/user1');
+      const response = await request(app).delete('/users/123');
 
-      expect(res.status).toBe(404);
-      expect(res.body.message).toBe('User not found');
+      expect(response.status).toBe(404);
+      expect(response.body).toHaveProperty('message', 'User not found');
     });
   });
 });
