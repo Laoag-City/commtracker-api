@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const signatorySchema = new mongoose.Schema({
-  signatory: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  signatory: { type: Schema.Types.ObjectId, ref: 'User'},
   signDate: { type: Date, default: Date.now },
   remarks: { type: String, default: '' },
   status: { type: String, default: '' }
