@@ -21,9 +21,13 @@ exports.getAllTrackers = async (req, res) => {
     const limit = parseInt(req.query.limit) || 25;
     const skip = (page - 1) * limit;
 
+    const sortBy = req.query.sortBy || 'dateApplied'; // Default sorting field
+    const order = req.query.order === 'asc' ? 1 : -1; // Sort order: 'asc' for ascending, default 'desc'
+    
     const totalTrackers = await Tracker.countDocuments();
     const trackers = await Tracker.find()
       .populate('constructionPermitSignatories.signatory')
+      .sort({ [sortBy]: order }) // Sort by the field in ascending/descending order
       .skip(skip)
       .limit(limit);
 
