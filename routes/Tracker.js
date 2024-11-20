@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const trackerController = require('../controllers/trackerController');
+const trackerController = require('../controllers/Tracker');
 const authenticateJWT = require('../middlewares/authMiddleware');
 
 // CRUD operations for trackers

@@ -1,4 +1,4 @@
-const Group = require('../models/groupModel');
+const Group = require('../models/Group');
 const Department = require('../models/Department');
 const logger = require('../utils/logger'); 
 
