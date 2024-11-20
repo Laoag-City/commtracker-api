@@ -39,5 +39,32 @@ You also need to ensure the following external resources are available:
    http://localhost:3004
    https://your-domain.com:3004
 
+### Persistent Volumes and Networks
+
+node-tls Volume: Used to store TLS certificates. Ensure this volume contains the required certificates before running the application.
+prod-network Network: Must be pre-configured to connect this container with other services.
+
+### Stopping the Application
+1. To stop the application, run:
+
+   ```bash
+      docker-compose down
+
+This will stop and remove the container but preserve the external volume and network.
+
+### File Structure
+
+   Dockerfile: Defines the build instructions for the container.
+   docker-compose.yaml: Configuration file for the containerized application, including volumes and networks.
+
+### Notes
+   Ensure the external node-tls volume contains valid TLS certificates to avoid runtime errors.
+   Modify the docker-compose.yaml file as needed to match your specific environment.
+
+### License
+   This project is licensed under the MIT License.
+
+For additional help or questions, please contact the maintainers of this repository.
+
 ### TODO: clearer instructions 
 (e.g. setup dotenv or .env file)
