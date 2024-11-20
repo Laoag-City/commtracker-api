@@ -56,10 +56,14 @@ Additionally, ensure the following external resources are available:
 ### Notes
    - Ensure the node-tls volume contains valid TLS certificates to avoid runtime errors.
    - Modify the docker-compose.yaml file as needed to suit your specific environment.
+   - Needs a mongodb instance to run
+
 ### License
    - This project is licensed under the MIT License.
 
 ### TODO:
    - Provide clearer instructions for setting up environment variables (e.g., .env file configuration).
    - Detail any additional setup required for production deployment.
-   - For further assistance, please contact the maintainers of this repository.
+
+
+For further assistance, please contact the maintainers of this repository.
