@@ -1,4 +1,4 @@
-const Department = require('../models/departmentModel');
+const Department = require('../models/Department');
 const logger = require('../utils/logger');
 
 // Get all departments

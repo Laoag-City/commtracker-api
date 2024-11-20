@@ -1,5 +1,5 @@
 const Group = require('../models/groupModel');
-const Department = require('../models/departmentModel');
+const Department = require('../models/Department');
 const logger = require('../utils/logger'); 
 
 // Create a new group

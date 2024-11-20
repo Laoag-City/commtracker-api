@@ -2,7 +2,7 @@ const express = require('express');
 const { check, validationResult } = require('express-validator');
 const rateLimit = require('express-rate-limit');
 const router = express.Router();
-const userController = require('../controllers/userController');
+const userController = require('../controllers/User');
 const authenticateJWT = require('../middlewares/authMiddleware');
 
 // Rate limiter for login route
