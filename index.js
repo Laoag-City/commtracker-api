@@ -32,7 +32,7 @@ app.use('/groups', groupRoutes);
 app.use('/trackers', trackerRoutes); // Tracker routes
 
 app.get('/', (req, res) => {
-  res.send('Laoag City One Stop Construction Permit Tracking ReST API Server. Docs at <a href="https://apps.laoagcity.gov.ph/apidocs/oscp-tracker">API Docs</a>');
+  res.send('Laoag City Communications Tracking ReST API Server. Docs at <a href="https://apps.laoagcity.gov.ph/apidocs/comm-tracker">API Docs</a>');
 });
 
 mongoose.connect(config.mongoUri, {})
