@@ -5,10 +5,13 @@ const departmentSchema = new mongoose.Schema({
     type: Number,
     required: true,
     unique: true,
+    min: 1 // Example validation: deptCode must be positive
   },
   deptName: {
     type: String,
     required: true,
+    unique: true, // Ensure no duplicate department names
+    maxlength: 100 // Optional: limit string length
   }
 }, {
   collection: 'departments',
