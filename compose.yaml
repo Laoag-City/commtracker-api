@@ -1,10 +1,10 @@
 services:
-  comm-tracker-api:
-    container_name: comm-tracker-api
+  commtracker-api:
+    container_name: commtracker-api
     restart: always
     build: .
     ports:
-      - "3003:3003"
+      - "3004:3004"
     volumes:
       - .:/app
       - /app/node_modules
