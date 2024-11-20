@@ -1,28 +1,31 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+// Recipient Schema
 const signatorySchema = new mongoose.Schema({
-  signatory: { type: Schema.Types.ObjectId, ref: 'User'},
-  signDate: { type: Date, default: Date.now },
+  receivingDepartment: { type: Schema.Types.ObjectId, ref: 'Department' },
+  receiveDate: { type: Date, default: Date.now },
   remarks: { type: String, default: '' },
-  status: { type: String, default: '' }
+  status: {
+    type: String,
+    default: '',
+    enum: ['pending', 'approved', 'rejected', 'in-progress'] // Optional: Add valid statuses
+  }
 }, {
-  timestamps: true // This enables createdAt and updatedAt fields
+  timestamps: true // Enables createdAt and updatedAt fields
 });
 
+// Tracker Schema
 const trackerSchema = new mongoose.Schema({
-  owner: { type: String, required: true },
-  title: { type: String, required: true },
-  dateApplied: { type: Date, default: Date.now },
-  conversionStatus: { type: Boolean, default: false },
-  cPermitStatus: { type: Boolean, default: false },
-  cPermitType: { type: String, default: '' },
-  ownerName: { type: String, required: true },
-  applicationTitle: { type: String, required: true },
-  constructionPermitSignatories: [signatorySchema]
+  fromName: { type: String, required: true },
+  documentTitle: { type: String, required: true },
+  dateReceived: { type: Date, default: Date.now },
+  attachment: { type: Buffer, required: false }, // Consider external file storage
+  recipient: [signatorySchema]
 }, {
-  collection: 'oscp-applications',
+  collection: 'communication-trackers',
   timestamps: true
 });
 
-module.exports = mongoose.model('OSCPTracker', trackerSchema);
+// Export Model
+module.exports = mongoose.model('CommTrackers', trackerSchema);
