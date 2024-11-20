@@ -20,7 +20,7 @@ You also need to ensure the following external resources are available:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/kechie/commtracker-api.git
+   git clone https://github.com/Laoag-City/commtracker-api.git
    cd commtracker-api
 # CommTracker API
 
@@ -44,7 +44,7 @@ You also need to ensure the following external resources are available:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/kechie/commtracker-api.git
+   git clone https://github.com/Laoag-City/commtracker-api.git
    cd commtracker-api
 
 docker volume create --name node-tls
