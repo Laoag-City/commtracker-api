@@ -9,7 +9,7 @@ Before running the application, ensure you have the following installed on your 
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
-You also need to ensure the following external resources are available:
+Additionally, ensure the following external resources are available:
 
 1. **`node-tls` Volume**: This external volume must contain the necessary TLS certificates used by the application.
 2. **`prod-network` Network**: This external Docker network is required for inter-container communication in production.
@@ -18,53 +18,48 @@ You also need to ensure the following external resources are available:
 
 ### Build and Run the Application
 
-1. Setup docker network and volumes
-   ```
+1. **Set up Docker network and volume:**
+   ```bash
    docker volume create --name node-tls
    docker network create --name prod-network
-
-2. Clone the repository:
+2. **Clone the repository:**
    ```bash
    git clone https://github.com/Laoag-City/commtracker-api.git
    cd commtracker-api
-
-3. Run container instance
+3. **Run the container instance:**
    ```bash
    docker-compose up --build
 
 ### Access the API
 
-1. Access the API via
-   ```
+- **Local Development:**
+   ```bash
    http://localhost:3004
+   
+- **Production Deployment:**
+   ```bash
    https://your-domain.com:3004
 
 ### Persistent Volumes and Networks
-
-node-tls Volume: Used to store TLS certificates. Ensure this volume contains the required certificates before running the application.
-prod-network Network: Must be pre-configured to connect this container with other services.
+   - node-tls Volume: Used to store TLS certificates. Ensure this volume contains valid certificates before running the application.
+   - prod-network Network: Required for connecting this container with other production services.
 
 ### Stopping the Application
-1. To stop the application, run:
-
-   ```bash
+   - To stop the application and remove the container while preserving the external volume and network, run:
+      ```bash
       docker-compose down
 
-This will stop and remove the container but preserve the external volume and network.
-
 ### File Structure
-
-   Dockerfile: Defines the build instructions for the container.
-   docker-compose.yaml: Configuration file for the containerized application, including volumes and networks.
+   - Dockerfile: Defines the build instructions for the container.
+   - docker-compose.yaml: Configuration file for the containerized application, including volume and network settings.
 
 ### Notes
-   Ensure the external node-tls volume contains valid TLS certificates to avoid runtime errors.
-   Modify the docker-compose.yaml file as needed to match your specific environment.
-
+   - Ensure the node-tls volume contains valid TLS certificates to avoid runtime errors.
+   - Modify the docker-compose.yaml file as needed to suit your specific environment.
 ### License
-   This project is licensed under the MIT License.
+   - This project is licensed under the MIT License.
 
-For additional help or questions, please contact the maintainers of this repository.
-
-### TODO: clearer instructions 
-(e.g. setup dotenv or .env file)
+### TODO:
+   - Provide clearer instructions for setting up environment variables (e.g., .env file configuration).
+   - Detail any additional setup required for production deployment.
+   - For further assistance, please contact the maintainers of this repository.
