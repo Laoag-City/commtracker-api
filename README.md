@@ -20,8 +20,8 @@ You also need to ensure the following external resources are available:
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
-   cd <repository-directory>
+   git clone https://github.com/kechie/commtracker-api.git
+   cd commtracker-api
 # CommTracker API
 
 This repository contains the Docker setup for the **CommTracker API**, a containerized Node.js application. The setup includes a custom volume for TLS certificates and connects to an external production network.
