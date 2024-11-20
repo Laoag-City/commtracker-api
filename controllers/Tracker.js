@@ -1,4 +1,4 @@
-const Tracker = require('../models/trackerModel');
+const Tracker = require('../models/Tracker');
 const logger = require('../utils/logger');
 
 // Create a new tracker
@@ -16,7 +16,7 @@ exports.createTracker = async (req, res) => {
 
 // Get all trackers with pagination
 exports.getAllTrackers = async (req, res) => {
-  try {
+  try {s
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 25;
     const skip = (page - 1) * limit;
