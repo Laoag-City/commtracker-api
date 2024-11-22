@@ -19,7 +19,7 @@ exports.validateUserInput = (data) => {
 
   // Check user role
   //const allowedRoles = ['admin', 'user', 'viewer'];
-  const allowedRoles = ['admin','trackerreceiving','recipient','viewer'];
+  const allowedRoles = ['superadmin','admin','trackerreceiving','recipient','viewer','trackermonitor'];
   if (!userrole || !allowedRoles.includes(userrole)) {
     return `User role must be one of: ${allowedRoles.join(', ')}`;
   }
