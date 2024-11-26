@@ -1,8 +1,8 @@
 // File path: controllers/Trackers.js
-const express = require('express');
-const mongoose = require('mongoose');
+//const express = require('express');
+//const mongoose = require('mongoose');
 const CommTrackers = require('../models/Tracker'); // Update path as per your project structure
-
+const logger = require('../utils/logger');
 // Controller
 const commTrackersController = {
   // Create a new tracker
@@ -28,8 +28,8 @@ const commTrackersController = {
       res.status(400).json({ message: 'Error creating tracker', error });
     }
   },
-
-  // Get all communication trackers with pagination (WIP)
+/*
+    // Get all communication trackers with pagination (WIP)
   getAllTrackers: async (req, res) => {
     try {
       const trackers = await CommTrackers.find().populate('recipient.receivingDepartment');
@@ -38,7 +38,42 @@ const commTrackersController = {
       res.status(500).json({ message: 'Error retrieving trackers', error });
     }
   },
+  */
 
+  getAllTrackers: async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 25;
+      const skip = (page - 1) * limit;
+  
+      const sortBy = req.query.sortBy || 'dateReceived'; // Default sorting field
+      const order = req.query.order === 'asc' ? 1 : -1; // Sort order: 'asc' for ascending, default 'desc'
+      
+      const totalTrackers = await CommTrackers.countDocuments();
+      const trackers = await CommTrackers.find()
+        .populate('recipient.receivingDepartment')
+        .sort({ [sortBy]: order }) // Sort by the field in ascending/descending order
+        .skip(skip)
+        .limit(limit);
+  
+      const totalPages = Math.ceil(totalTrackers / limit);
+  
+      res.status(200).json({
+        trackers,
+        metadata: {
+          totalTrackers,
+          totalPages,
+          currentPage: page,
+          itemsPerPage: limit,
+        },
+      });
+      logger.info('OSCP Trackers fetched successfully', { totalTrackers });
+    } catch (error) {
+      logger.error('Error fetching OSCP trackers', { error: error.message });
+      res.status(500).json({ message: 'Error fetching OSCP trackers', error: error.message });
+    }
+  },
+  
   // Get a specific communication tracker by ID
   getTrackerById: async (req, res) => {
     try {
@@ -48,7 +83,9 @@ const commTrackersController = {
         return res.status(404).json({ message: 'Tracker not found' });
       }
       res.status(200).json(tracker);
+      logger.info('Tracker document ID fetched successfully', { trackerId: tracker._id });
     } catch (error) {
+      logger.error('Error fetching Tracker document ID', { error: error.message });
       res.status(500).json({ message: 'Error retrieving tracker', error });
     }
   },
