@@ -1,4 +1,81 @@
-const Tracker = require('../models/Tracker');
+// File path: controllers/Trackers.js
+const express = require('express');
+const mongoose = require('mongoose');
+const CommTrackers = require('../models/Tracker'); // Update path as per your project structure
+
+// Controller
+const commTrackersController = {
+  // Create a new communication tracker
+  createTracker: async (req, res) => {
+    try {
+      const tracker = new CommTrackers(req.body);
+      const savedTracker = await tracker.save();
+      res.status(201).json(savedTracker);
+    } catch (error) {
+      res.status(400).json({ message: 'Error creating tracker', error });
+    }
+  },
+
+  // Get all communication trackers
+  getAllTrackers: async (req, res) => {
+    try {
+      const trackers = await CommTrackers.find().populate('recipient.receivingDepartment');
+      res.status(200).json(trackers);
+    } catch (error) {
+      res.status(500).json({ message: 'Error retrieving trackers', error });
+    }
+  },
+
+  // Get a specific communication tracker by ID
+  getTrackerById: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const tracker = await CommTrackers.findById(id).populate('recipient.receivingDepartment');
+      if (!tracker) {
+        return res.status(404).json({ message: 'Tracker not found' });
+      }
+      res.status(200).json(tracker);
+    } catch (error) {
+      res.status(500).json({ message: 'Error retrieving tracker', error });
+    }
+  },
+
+  // Update a communication tracker by ID
+  updateTrackerById: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updatedTracker = await CommTrackers.findByIdAndUpdate(id, req.body, {
+        new: true,
+        runValidators: true,
+      });
+      if (!updatedTracker) {
+        return res.status(404).json({ message: 'Tracker not found' });
+      }
+      res.status(200).json(updatedTracker);
+    } catch (error) {
+      res.status(400).json({ message: 'Error updating tracker', error });
+    }
+  },
+
+  // Delete a communication tracker by ID
+  deleteTrackerById: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deletedTracker = await CommTrackers.findByIdAndDelete(id);
+      if (!deletedTracker) {
+        return res.status(404).json({ message: 'Tracker not found' });
+      }
+      res.status(200).json({ message: 'Tracker deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error deleting tracker', error });
+    }
+  },
+};
+
+// Export the controller
+module.exports = commTrackersController;
+// -----------------------------
+/* const Tracker = require('../models/Tracker');
 const logger = require('../utils/logger');
 
 // Create a new tracker
@@ -26,7 +103,7 @@ exports.getAllTrackers = async (req, res) => {
     
     const totalTrackers = await Tracker.countDocuments();
     const trackers = await Tracker.find()
-      .populate('constructionPermitSignatories.signatory')
+      .populate('recipient.signatory')
       .sort({ [sortBy]: order }) // Sort by the field in ascending/descending order
       .skip(skip)
       .limit(limit);
@@ -93,3 +170,4 @@ exports.deleteTracker = async (req, res) => {
     res.status(500).json({ message: 'Error deleting OSCP tracker document', error: error.message });
   }
 };
+ */
