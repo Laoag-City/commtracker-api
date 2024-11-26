@@ -9,34 +9,7 @@ const { validateUserInput } = require('../utils/validators'); // Input validatio
 const secretKey = config.jwtSecret;
 
 // Register User (Create)
-/* exports.register = async (req, res) => {
-  try {
-    const { username, password, userrole, deptId } = req.body;
 
-    // Input validation
-    const validationError = validateUserInput({ username, password, userrole });
-    if (validationError) {
-      return res.status(400).json({ error: validationError });
-    }
-
-    // Create user
-    const user = new User({ username, password, userrole, deptId });
-    await user.save();
-
-    // Generate JWT
-    const token = jwt.sign(
-      { _id: user._id.toString(), deptId: user.deptId },
-      secretKey,
-      { expiresIn: '1d' }
-    );
-
-    res.status(201).send({ user, token });
-    logger.info('User registered successfully', { userId: user._id });
-  } catch (error) {
-    handleError(res, error, 'User registration failed');
-  }
-};
- */
 exports.register = async (req, res) => {
   try {
     const { username, password, userrole, deptId } = req.body;
@@ -155,7 +128,10 @@ exports.updateUser = async (req, res) => {
   try {
     const { username, password, userrole, deptId } = req.body;
     const user = await User.findById(req.params.id);
-
+    console.log(username);
+    console.log(password);
+    console.log(userrole);
+    console.log(deptId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
