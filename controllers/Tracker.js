@@ -5,18 +5,31 @@ const CommTrackers = require('../models/Tracker'); // Update path as per your pr
 
 // Controller
 const commTrackersController = {
-  // Create a new communication tracker
+  // Create a new tracker
   createTracker: async (req, res) => {
     try {
-      const tracker = new CommTrackers(req.body);
+      const { fromName, documentTitle, recipient } = req.body;
+
+      // Handle file attachment
+      const attachment = req.file ? req.file.buffer : null;
+
+      const tracker = new CommTrackers({
+        fromName,
+        documentTitle,
+        recipient,
+        attachment, // Store the file as a Buffer
+      });
+
       const savedTracker = await tracker.save();
       res.status(201).json(savedTracker);
+      logger.info('Tracker document created successfully', { trackerId: tracker._id });
     } catch (error) {
+      logger.error('Error creating OSCP tracker document', { error: error.message });
       res.status(400).json({ message: 'Error creating tracker', error });
     }
   },
 
-  // Get all communication trackers
+  // Get all communication trackers with pagination (WIP)
   getAllTrackers: async (req, res) => {
     try {
       const trackers = await CommTrackers.find().populate('recipient.receivingDepartment');
@@ -39,15 +52,23 @@ const commTrackersController = {
       res.status(500).json({ message: 'Error retrieving tracker', error });
     }
   },
-
-  // Update a communication tracker by ID
+  
+  // Update a tracker
   updateTrackerById: async (req, res) => {
     try {
       const { id } = req.params;
-      const updatedTracker = await CommTrackers.findByIdAndUpdate(id, req.body, {
+
+      // Handle file attachment
+      const attachment = req.file ? req.file.buffer : undefined;
+
+      const updateData = { ...req.body };
+      if (attachment) updateData.attachment = attachment; // Only update attachment if provided
+
+      const updatedTracker = await CommTrackers.findByIdAndUpdate(id, updateData, {
         new: true,
         runValidators: true,
       });
+
       if (!updatedTracker) {
         return res.status(404).json({ message: 'Tracker not found' });
       }
@@ -56,7 +77,7 @@ const commTrackersController = {
       res.status(400).json({ message: 'Error updating tracker', error });
     }
   },
-
+  
   // Delete a communication tracker by ID
   deleteTrackerById: async (req, res) => {
     try {
@@ -93,7 +114,7 @@ exports.createTracker = async (req, res) => {
 
 // Get all trackers with pagination
 exports.getAllTrackers = async (req, res) => {
-  try {s
+  try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 25;
     const skip = (page - 1) * limit;
