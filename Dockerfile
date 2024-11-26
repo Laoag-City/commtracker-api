@@ -7,7 +7,7 @@ COPY package.json yarn.lock ./
 RUN yarn
 COPY . .
 
-EXPOSE 3002
+EXPOSE 3004
 #key generator
 RUN node /app/generateKey.js
 # Set the start command
