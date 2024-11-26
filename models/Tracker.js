@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 // Recipient Schema
-const signatorySchema = new mongoose.Schema({
+const recipientSchema = new mongoose.Schema({
   receivingDepartment: { type: Schema.Types.ObjectId, ref: 'Department' },
   receiveDate: { type: Date, default: Date.now },
   remarks: { type: String, default: '' },
@@ -21,7 +21,7 @@ const trackerSchema = new mongoose.Schema({
   documentTitle: { type: String, required: true },
   dateReceived: { type: Date, default: Date.now },
   attachment: { type: Buffer, required: false }, // Consider external file storage
-  recipient: [signatorySchema]
+  recipient: [recipientSchema]
 }, {
   collection: 'communication-trackers',
   timestamps: true
