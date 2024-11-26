@@ -24,7 +24,7 @@ const commTrackersController = {
       res.status(201).json(savedTracker);
       logger.info('Tracker document created successfully', { trackerId: tracker._id });
     } catch (error) {
-      logger.error('Error creating OSCP tracker document', { error: error.message });
+      logger.error('Error creating Tracker document', { error: error.message });
       res.status(400).json({ message: 'Error creating tracker', error });
     }
   },
@@ -67,10 +67,10 @@ const commTrackersController = {
           itemsPerPage: limit,
         },
       });
-      logger.info('OSCP Trackers fetched successfully', { totalTrackers });
+      logger.info('Trackers fetched successfully', { totalTrackers });
     } catch (error) {
-      logger.error('Error fetching OSCP trackers', { error: error.message });
-      res.status(500).json({ message: 'Error fetching OSCP trackers', error: error.message });
+      logger.error('Error fetching trackers', { error: error.message });
+      res.status(500).json({ message: 'Error fetching trackers', error: error.message });
     }
   },
   
@@ -107,10 +107,13 @@ const commTrackersController = {
       });
 
       if (!updatedTracker) {
+        logger.error('Error updating tracker document', { error: error.message });
         return res.status(404).json({ message: 'Tracker not found' });
       }
       res.status(200).json(updatedTracker);
+      logger.info('Tracker document updated successfully', { trackerId: tracker._id });
     } catch (error) {
+      logger.error('Error updating tracker document', { error: error.message });
       res.status(400).json({ message: 'Error updating tracker', error });
     }
   },
@@ -124,7 +127,9 @@ const commTrackersController = {
         return res.status(404).json({ message: 'Tracker not found' });
       }
       res.status(200).json({ message: 'Tracker deleted successfully' });
+      logger.info('OSCP Tracker deleted successfully', { trackerId: tracker._id });
     } catch (error) {
+      logger.error('Error deleting OSCP tracker document', { error: error.message });
       res.status(500).json({ message: 'Error deleting tracker', error });
     }
   },
@@ -132,6 +137,7 @@ const commTrackersController = {
 
 // Export the controller
 module.exports = commTrackersController;
+
 // -----------------------------
 /* const Tracker = require('../models/Tracker');
 const logger = require('../utils/logger');
