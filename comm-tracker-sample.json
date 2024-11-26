@@ -1,0 +1,142 @@
+[
+    {
+        "fromName": "Alice Smith",
+        "documentTitle": "Project Proposal",
+        "dateReceived": "2024-11-15T00:00:00.000Z",
+        "attachment": "U2FtcGxlIGZpbGUgY29udGVudCBmb3IgcHJvamVjdCBwcm9wb3NhbA==",
+        "recipient": [
+            {
+                "receivingDepartment": "5f4e7d0b6f6f6f6f6f6f6f6f",
+                "receiveDate": "2024-11-16T00:00:00.000Z",
+                "remarks": "Initial review completed",
+                "status": "approved"
+            },
+            {
+                "receivingDepartment": "5f4e7d0b6f6f6f6f6f6f6f7f",
+                "receiveDate": "2024-11-17T00:00:00.000Z",
+                "remarks": "Requires technical analysis",
+                "status": "in-progress"
+            }
+        ]
+    },
+    {
+        "fromName": "Alice Smith",
+        "documentTitle": "Project Proposal",
+        "dateReceived": "2024-11-15T00:00:00.000Z",
+        "attachment": "U2FtcGxlIGZpbGUgY29udGVudCBmb3IgcHJvamVjdCBwcm9wb3NhbA==",
+        "recipient": [
+            {
+                "receivingDepartment": "5f4e7d0b6f6f6f6f6f6f6f6f",
+                "receiveDate": "2024-11-16T00:00:00.000Z",
+                "remarks": "Initial review completed",
+                "status": "approved"
+            },
+            {
+                "receivingDepartment": "5f4e7d0b6f6f6f6f6f6f6f7f",
+                "receiveDate": "2024-11-17T00:00:00.000Z",
+                "remarks": "Requires technical analysis",
+                "status": "in-progress"
+            }
+        ]
+    },
+    {
+        "fromName": "Bob Johnson",
+        "documentTitle": "Client Feedback Report",
+        "dateReceived": "2024-11-18T00:00:00.000Z",
+        "attachment": "U2FtcGxlIGZpbGUgY29udGVudCBmb3IgY2xpZW50IGZlZWRiYWNrIHJlcG9ydA==",
+        "recipient": [
+            {
+                "receivingDepartment": "5f4e7d0b6f6f6f6f6f6f6f8f",
+                "receiveDate": "2024-11-19T00:00:00.000Z",
+                "remarks": "Feedback reviewed",
+                "status": "approved"
+            },
+            {
+                "receivingDepartment": "5f4e7d0b6f6f6f6f6f6f6f9f",
+                "receiveDate": "2024-11-20T00:00:00.000Z",
+                "remarks": "In-depth discussion needed",
+                "status": "pending"
+            }
+        ]
+    },
+    {
+        "fromName": "Charlie Lee",
+        "documentTitle": "Quarterly Sales Summary",
+        "dateReceived": "2024-11-10T00:00:00.000Z",
+        "attachment": "U2FtcGxlIGZpbGUgY29udGVudCBmb3Igc2FsZXMgcmVwb3J0",
+        "recipient": [
+            {
+                "receivingDepartment": "5f4e7d0b6f6f6f6f6f6f6fa0",
+                "receiveDate": "2024-11-11T00:00:00.000Z",
+                "remarks": "Report acknowledged",
+                "status": "approved"
+            },
+            {
+                "receivingDepartment": "5f4e7d0b6f6f6f6f6f6f6fb1",
+                "receiveDate": "2024-11-12T00:00:00.000Z",
+                "remarks": "Needs formatting improvements",
+                "status": "rejected"
+            }
+        ]
+    },
+    {
+        "fromName": "Daniela Martinez",
+        "documentTitle": "Product Launch Plan",
+        "dateReceived": "2024-11-22T00:00:00.000Z",
+        "attachment": "U2FtcGxlIGZpbGUgY29udGVudCBmb3IgcHJvZHVjdCBsYXVuY2ggcGxhbg==",
+        "recipient": [
+            {
+                "receivingDepartment": "5f4e7d0b6f6f6f6f6f6f6fc2",
+                "receiveDate": "2024-11-23T00:00:00.000Z",
+                "remarks": "Launch readiness reviewed",
+                "status": "approved"
+            },
+            {
+                "receivingDepartment": "5f4e7d0b6f6f6f6f6f6f6fd3",
+                "receiveDate": "2024-11-24T00:00:00.000Z",
+                "remarks": "Final details pending",
+                "status": "in-progress"
+            }
+        ]
+    },
+    {
+        "fromName": "Eve Roberts",
+        "documentTitle": "Staff Meeting Notes",
+        "dateReceived": "2024-11-17T00:00:00.000Z",
+        "attachment": "U2FtcGxlIGZpbGUgY29udGVudCBmb3Igc3RhZmYgbWVldGluZyBub3Rl",
+        "recipient": [
+            {
+                "receivingDepartment": "5f4e7d0b6f6f6f6f6f6f6fe4",
+                "receiveDate": "2024-11-18T00:00:00.000Z",
+                "remarks": "Notes reviewed and shared",
+                "status": "approved"
+            },
+            {
+                "receivingDepartment": "5f4e7d0b6f6f6f6f6f6f6ff5",
+                "receiveDate": "2024-11-19T00:00:00.000Z",
+                "remarks": "Action points assigned",
+                "status": "in-progress"
+            }
+        ]
+    },
+    {
+        "fromName": "Franklin White",
+        "documentTitle": "Budget Adjustment Request",
+        "dateReceived": "2024-11-13T00:00:00.000Z",
+        "attachment": "U2FtcGxlIGZpbGUgY29udGVudCBmb3IgYnVkZ2V0IGFkanVzdG1lbnQ=",
+        "recipient": [
+            {
+                "receivingDepartment": "5f4e7d0b6f6f6f6f6f6f7006",
+                "receiveDate": "2024-11-14T00:00:00.000Z",
+                "remarks": "Reviewed and approved for next step",
+                "status": "approved"
+            },
+            {
+                "receivingDepartment": "5f4e7d0b6f6f6f6f6f6f7017",
+                "receiveDate": "2024-11-15T00:00:00.000Z",
+                "remarks": "Additional documentation requested",
+                "status": "rejected"
+            }
+        ]
+    }
+]
