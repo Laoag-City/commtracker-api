@@ -19,6 +19,7 @@ const UserSchema = new mongoose.Schema({
   userrole: { 
     type: String, 
     required: true,
+    default: 'recipient',
     enum: ['superadmin','admin','trackerreceiving','recipient', 'viewer','trackermonitor'], // Define allowed roles
   },
   deptId: { 

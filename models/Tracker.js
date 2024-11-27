@@ -22,7 +22,7 @@ const recipientSchema = new mongoose.Schema({
 const trackerSchema = new mongoose.Schema({
   fromName: { type: String, required: true },
   documentTitle: { type: String, required: true },
-  dateReceived: { type: Date, default: Date.now },
+  dateReceived: { type: Date },
   attachment: { type: Buffer, required: false },
   isArchived: { type: Boolean },
   recipient: [recipientSchema]
