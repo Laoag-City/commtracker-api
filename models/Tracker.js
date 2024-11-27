@@ -4,10 +4,10 @@ const Schema = mongoose.Schema;
 // Recipient Schema
 const recipientSchema = new mongoose.Schema({
   receivingDepartment: { type: Schema.Types.ObjectId, ref: 'Department' },
-  seenDate:{type: Date},
-  receiveDate: { type: Date, default: Date.now },
-  isSeen: Boolean,
-  dateSeen:{type: Date},
+  seenDate:{ type: Date },
+  receiveDate: { type: Date },
+  isSeen: { type: Boolean },
+  dateSeen:{ type: Date },
   remarks: { type: String, default: '' },
   status: {
     type: String,
@@ -23,7 +23,8 @@ const trackerSchema = new mongoose.Schema({
   fromName: { type: String, required: true },
   documentTitle: { type: String, required: true },
   dateReceived: { type: Date, default: Date.now },
-  attachment: { type: Buffer, required: false }, // Consider external file storage
+  attachment: { type: Buffer, required: false },
+  isArchived: { type: Boolean },
   recipient: [recipientSchema]
 }, {
   collection: 'communication-trackers',
