@@ -28,18 +28,7 @@ const commTrackersController = {
       res.status(400).json({ message: 'Error creating tracker', error });
     }
   },
-/*
-    // Get all communication trackers with pagination (WIP)
-  getAllTrackers: async (req, res) => {
-    try {
-      const trackers = await CommTrackers.find().populate('recipient.receivingDepartment');
-      res.status(200).json(trackers);
-    } catch (error) {
-      res.status(500).json({ message: 'Error retrieving trackers', error });
-    }
-  },
-  */
-
+  
   getAllTrackers: async (req, res) => {
     try {
       const page = parseInt(req.query.page) || 1;
@@ -83,7 +72,7 @@ const commTrackersController = {
         return res.status(404).json({ message: 'Tracker not found' });
       }
       res.status(200).json(tracker);
-      logger.info('Tracker document ID fetched successfully', { trackerId: tracker._id });
+      logger.info('Tracker document ID fetched successfully', { trackerId: id });
     } catch (error) {
       logger.error('Error fetching Tracker document ID', { error: error.message });
       res.status(500).json({ message: 'Error retrieving tracker', error });
@@ -111,7 +100,7 @@ const commTrackersController = {
         return res.status(404).json({ message: 'Tracker not found' });
       }
       res.status(200).json(updatedTracker);
-      logger.info('Tracker document updated successfully', { trackerId: tracker._id });
+      logger.info('Tracker document updated successfully', { trackerId: id });
     } catch (error) {
       logger.error('Error updating tracker document', { error: error.message });
       res.status(400).json({ message: 'Error updating tracker', error });
@@ -127,9 +116,9 @@ const commTrackersController = {
         return res.status(404).json({ message: 'Tracker not found' });
       }
       res.status(200).json({ message: 'Tracker deleted successfully' });
-      logger.info('OSCP Tracker deleted successfully', { trackerId: tracker._id });
+      logger.info('Tracker deleted successfully', { trackerId: id });
     } catch (error) {
-      logger.error('Error deleting OSCP tracker document', { error: error.message });
+      logger.error('Error deleting Tracker  document', { error: error.message });
       res.status(500).json({ message: 'Error deleting tracker', error });
     }
   },
