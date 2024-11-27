@@ -4,11 +4,12 @@ const Schema = mongoose.Schema;
 // Recipient Schema
 const recipientSchema = new mongoose.Schema({
   receivingDepartment: { type: Schema.Types.ObjectId, ref: 'Department' },
+  seenDate:{type: Date},
   receiveDate: { type: Date, default: Date.now },
   remarks: { type: String, default: '' },
   status: {
     type: String,
-    default: '',
+    default: 'pending',
     enum: ['pending', 'approved', 'rejected', 'in-progress'] // Optional: Add valid statuses
   }
 }, {
