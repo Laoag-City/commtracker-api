@@ -1,3 +1,4 @@
+// routes/Tracker.js
 const express = require('express');
 const commTrackersController = require('../controllers/Tracker');
 const authenticateJWT = require('../middlewares/authMiddleware');
@@ -38,6 +39,14 @@ router.delete(
   validateTrackerId,          // Validate ID
   commTrackersController.deleteTrackerById
 ); // Delete
+
+// Serve attachment for a specific tracker
+router.get(
+  '/:id/attachment',
+  authenticateJWT,           // Ensure the user is authenticated
+  validateTrackerId,         // Ensure the ID is valid
+  commTrackersController.getAttachment // Controller logic for serving the attachment
+);
 
 module.exports = router;
 

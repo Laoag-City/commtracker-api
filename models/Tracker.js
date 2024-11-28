@@ -6,7 +6,7 @@ const recipientSchema = new mongoose.Schema({
   receivingDepartment: { type: Schema.Types.ObjectId, ref: 'Department' },
   seenDate:{ type: Date },
   receiveDate: { type: Date },
-  isSeen: { type: Boolean },
+  isSeen: { type: Boolean, default: false },
   dateSeen:{ type: Date },
   remarks: { type: String, default: '' },
   status: {
@@ -24,7 +24,7 @@ const trackerSchema = new mongoose.Schema({
   documentTitle: { type: String, required: true },
   dateReceived: { type: Date },
   attachment: { type: Buffer, required: false },
-  isArchived: { type: Boolean },
+  isArchived: { type: Boolean, default: false },
   recipient: [recipientSchema]
 }, {
   collection: 'communication-trackers',

@@ -4,7 +4,7 @@ const multer = require('multer');
 const storage = multer.memoryStorage(); // Storing files in memory as Buffer
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB file size limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 5MB file size limit
   fileFilter: (req, file, cb) => {
     // Allow only certain file types (example: PDFs and images)
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
