@@ -48,6 +48,13 @@ router.get(
   commTrackersController.getAttachment // Controller logic for serving the attachment
 );
 
+// Error handling middleware for file uploads
+router.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ message: err.message });
+  }
+  next(err);
+});
 module.exports = router;
 
 /* // File path: routes/Trackers.js

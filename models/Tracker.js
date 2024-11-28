@@ -24,6 +24,7 @@ const trackerSchema = new mongoose.Schema({
   documentTitle: { type: String, required: true },
   dateReceived: { type: Date },
   attachment: { type: Buffer, required: false },
+  attachmentMimeType: {type: String},
   isArchived: { type: Boolean, default: false },
   recipient: [recipientSchema]
 }, {

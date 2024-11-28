@@ -140,17 +140,24 @@ const commTrackersController = {
   getAttachment: async (req, res) => {
     try {
       const { id } = req.params;
+  
+      // Find the tracker by ID
       const tracker = await CommTrackers.findById(id);
       if (!tracker || !tracker.attachment) {
         return res.status(404).json({ message: 'Attachment not found' });
       }
+  
+      // Set the content type based on the stored MIME type
       res.set('Content-Type', tracker.attachmentMimeType);
+  
+      // Send the binary attachment data
       res.send(tracker.attachment);
     } catch (error) {
       logger.error('Error fetching attachment', { error: error.message });
       res.status(500).json({ message: 'Error fetching attachment', error: error.message });
     }
   },
+  
 };
 
 module.exports = commTrackersController;
