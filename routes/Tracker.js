@@ -48,6 +48,14 @@ router.get(
   commTrackersController.getAttachment // Controller logic for serving the attachment
 );
 
+// Serve attachment with auth for a specific tracker
+router.get(
+  '/:id/attachmentwithauth',
+  authenticateJWT,           // Ensure the user is authenticated
+  validateTrackerId,         // Ensure the ID is valid
+  commTrackersController.getAttachmentWithAuth // Controller logic for serving the attachment
+);
+
 // Error handling middleware for file uploads
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
