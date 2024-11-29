@@ -38,10 +38,6 @@ const commTrackersController = {
         return res.status(400).json({ message: 'Required fields are missing' });
       }
 
-      // Handle file attachment
-      const attachment = req.file ? req.file.buffer : null;
-      const attachmentMimeType = req.file ? req.file.mimetype : null;
-
       const tracker = new CommTrackers({
         fromName,
         documentTitle,
@@ -51,21 +47,17 @@ const commTrackersController = {
         attachmentMimeType: req.file ? req.file.mimetype : null,
       });
 
-/*       const tracker = new CommTrackers({
-        fromName,
-        documentTitle,
-        dateReceived,
-        recipient: parsedRecipient,
-        attachment req.file ? req.file.buffer : null,
-        attachmentMimeType req.file ? req.file.mimetype : null,,
-      });
- */
+      console.log(req.body.recipient);
+      console.log(parsedRecipient);
+
       const savedTracker = await tracker.save();
       res.status(201).json(savedTracker);
       logger.info('Tracker document created successfully', { trackerId: tracker._id });
     } catch (error) {
       logger.error('Error creating Tracker document', { error: error.message });
       res.status(400).json({ message: 'Error creating tracker', error: error.message });
+      console.log(req.body.recipient);
+      console.log(parsedRecipient);
     }
   },
 
