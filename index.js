@@ -13,14 +13,30 @@ const logger = require('./utils/logger');
 
 const app = express();
 // Use Helmet to secure HTTP headers
-app.use(helmet());
+/* app.use( 
+  helmet({ 
+    contentSecurityPolicy: { directives: { "script-src": ["'self'", "laoagcity.gov.ph", "localhost"], 
+      }, 
+    },
+  }), 
+); [4]
+ */
+ app.use(helmet(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        // Allow framing from self and specific domain
+        frameAncestors: ["'self'", "laoagcity.gov.ph/", "localhost"],
+      },
+    },
+  })
+));
 
 /*
 app.use(helmet({
   contentSecurityPolicy: false,  // Example: Disable CSP if needed for your app
   // You can customize other security headers here
 }));
-
 */
 
 app.use(cors());
