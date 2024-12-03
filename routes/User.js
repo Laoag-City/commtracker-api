@@ -41,6 +41,24 @@ if (process.env.NODE_ENV !== 'production') {
   );
 }
 
+// Register route with authentication
+router.post(
+  '/register', 
+  authenticateJWT,
+  [
+    check('username', 'Username is required').notEmpty(),
+    check('password', 'Password must be at least 6 characters long').isLength({ min: 6 }),
+  ],
+  validateRequest,
+  async (req, res, next) => {
+    try {
+      await userController.register(req, res);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
 // Login route with rate limiter
 router.post(
   '/login',
