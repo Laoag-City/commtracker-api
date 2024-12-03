@@ -56,6 +56,13 @@ router.get(
   commTrackersController.getAttachmentWithAuth // Controller logic for serving the attachment
 );
 
+// Serve unauthenticated tracker to check status
+router.get(
+  '/status/:id',
+  validateTrackerId,         // Ensure the ID is valid
+  commTrackersController.getTrackerStatusById
+); 
+
 // Error handling middleware for file uploads
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {

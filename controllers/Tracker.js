@@ -4,28 +4,7 @@ const logger = require('../utils/logger');
 
 const commTrackersController = {
   // Create a new tracker
-  /*
-  const createTracker = async (req, res) => {
-  try {
-    const { fromName, documentTitle, dateReceived, recipient } = req.body;
 
-    const tracker = new CommTrackers({
-      fromName,
-      documentTitle,
-      dateReceived,
-      recipient: JSON.parse(recipient), // Parse recipient if sent as JSON string
-      attachment: req.file ? req.file.buffer : null,
-      attachmentMimeType: req.file ? req.file.mimetype : null,
-    });
-
-    const savedTracker = await tracker.save();
-    res.status(201).json(savedTracker);
-  } catch (error) {
-    res.status(400).json({ message: "Error creating tracker", error: error.message });
-  }
-};
-
-  */
   createTracker: async (req, res) => {
     try {
       const { fromName, documentTitle, dateReceived, recipient } = req.body;
@@ -316,6 +295,30 @@ const commTrackersController = {
       }
       //console.log(res);
     },
+    getTrackerStatusById: async (req, res) => {
+      try {
+        const { id } = req.params;
+        console.log(id);
+        // Populate recipient array
+        const tracker = await CommTrackers.findById(id)
+        .select('status dateReceived documentTitle isArchived recipient') // Specify the fields to return
+        .populate({
+          path: 'recipient.receivingDepartment',
+          select: 'deptName', // Fields to return within recipient subdocument
+        });
+        // Find the tracker by ID
+        if (!tracker ) {
+          return res.status(404).json({ message: "Tracker not found" });
+        }
+        // TODO: return some data only related to status
+        res.status(200).json(tracker);
+        logger.info('Tracker fetched successfully', { trackerId: id });
+      } catch (error) {
+        logger.error('Error fetching tracker', { error: error.message });
+        res.status(500).json({ message: 'Error fetching tracker', error: error.message });
+      }
+      //console.log(res);
+    }
     
 /*   const getAttachmentWithAuth = async (req, res) => {
     try {
