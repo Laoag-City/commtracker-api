@@ -1,6 +1,6 @@
 # Use a minimal Node.js base image
-FROM node:20.14.0-alpine
-#FROM node:22.12-alpine
+#FROM node:20.14.0-alpine docker pull node:22.12-alpine
+FROM node:22.11.0-alpine
 
 WORKDIR /app
 
