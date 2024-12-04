@@ -8,7 +8,7 @@ const authenticateJWT = require('../middlewares/authMiddleware');
 // Rate limiter for login route
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 60, // Limit each IP to 5 requests per windowMs
+  max: 60, // Limit each IP to 60 requests per windowMs
   message: { message: 'Too many login attempts from this IP, please try again later.' }, // Return message as JSON
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
@@ -25,7 +25,7 @@ const validateRequest = (req, res, next) => {
 // Register route available only in non-production environments
 if (process.env.NODE_ENV !== 'production') {
   router.post(
-    '/register',
+    '/registerdev',
     [
       check('username', 'Username is required').notEmpty(),
       check('password', 'Password must be at least 6 characters long').isLength({ min: 6 }),
