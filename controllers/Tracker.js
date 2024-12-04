@@ -3,8 +3,8 @@ const CommTrackers = require('../models/Tracker');
 const logger = require('../utils/logger');
 
 const commTrackersController = {
-  // Create a new tracker
 
+  // Create a new tracker
   createTracker: async (req, res) => {
     try {
       const { fromName, documentTitle, dateReceived, recipient } = req.body;
@@ -122,97 +122,7 @@ const commTrackersController = {
       res.status(400).json({ message: "Error updating tracker", error: error.message });
     }
     
-    /*     console.log("File received:", req.file);
-    console.log("Body received:", req.body);
-    try {
-      const { id } = req.params;
-  
-      // Parse `recipient` if it's a string
-      const updateData = { ...req.body };
-      if (typeof updateData.recipient === 'string') {
-        updateData.recipient = JSON.parse(updateData.recipient);
-      }
-  
-      const updatedTracker = await CommTrackers.findByIdAndUpdate(id, updateData, {
-        new: true,
-        runValidators: true,
-      });
-  
-      if (!updatedTracker) {
-        return res.status(404).json({ message: 'Tracker not found' });
-      }
-  
-      res.status(200).json(updatedTracker);
-    } catch (error) {
-      logger.error('Error updating tracker', { error: error.message });
-      res.status(400).json({ message: 'Error updating tracker', error: error.message });
-    } */
   },
-  /*
-  const updateTrackerById = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const updateData = {
-      ...req.body,
-      recipient: req.body.recipient ? JSON.parse(req.body.recipient) : undefined,
-    };
-
-    if (req.file) {
-      updateData.attachment = req.file.buffer;
-      updateData.attachmentMimeType = req.file.mimetype;
-    }
-
-    const updatedTracker = await CommTrackers.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!updatedTracker) {
-      return res.status(404).json({ message: "Tracker not found" });
-    }
-
-    res.status(200).json(updatedTracker);
-  } catch (error) {
-    res.status(400).json({ message: "Error updating tracker", error: error.message });
-  }
-  },
-  */
-  
-  /*   updateTrackerById: async (req, res) => {
-    try {
-      const { id } = req.params;
-
-      // Handle file attachment
-      const attachment = req.file ? req.file.buffer : undefined;
-      const attachmentMimeType = req.file ? req.file.mimetype : undefined;
-
-      const updateData = {
-        ...req.body,
-        recipient: req.body.recipient ? JSON.parse(req.body.recipient) : undefined,
-      };
-      if (attachment) {
-        updateData.attachment = attachment;
-        updateData.attachmentMimeType = attachmentMimeType;
-      }
-
-      const updatedTracker = await CommTrackers.findByIdAndUpdate(id, updateData, {
-        new: true,
-        runValidators: true,
-      });
-
-      if (!updatedTracker) {
-        return res.status(404).json({ message: 'Tracker not found' });
-      }
-
-      res.status(200).json(updatedTracker);
-      logger.info('Tracker updated successfully', { trackerId: id });
-    } catch (error) {
-      logger.error('Error updating tracker', { error: error.message });
-      res.status(400).json({ message: 'Error updating tracker', error: error.message });
-    }
-  },
- */
 
   // Delete a tracker
   deleteTrackerById: async (req, res) => {
@@ -308,7 +218,7 @@ const commTrackersController = {
         });
         // Find the tracker by ID
         if (!tracker ) {
-          return res.status(404).json({ message: "Tracker not found" });
+          return res.status(404).json({ message: "Document Tracker ID or invalid" });
         }
         // TODO: return some data only related to status
         res.status(200).json(tracker);
@@ -319,29 +229,7 @@ const commTrackersController = {
       }
       //console.log(res);
     }
-    
-/*   const getAttachmentWithAuth = async (req, res) => {
-    try {
-      const { id } = req.params;
-  
-      // Validate the tracker and its attachment
-      const tracker = await CommTrackers.findById(id);
-      if (!tracker || !tracker.attachment) {
-        return res.status(404).json({ message: "Attachment not found" });
-      }
-  
-      // Set appropriate content headers
-      res.set("Content-Type", tracker.attachmentMimeType);
-      res.set("Content-Disposition", `attachment; filename=${tracker.attachmentName || "file"}`);
-  
-      // Stream the attachment
-      res.send(tracker.attachment);
-    } catch (error) {
-      console.error("Error serving attachment:", error);
-      res.status(500).json({ message: "Error serving attachment" });
-    }
-  }
- */
+
 };
 
 module.exports = commTrackersController;
