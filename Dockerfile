@@ -1,6 +1,6 @@
 # Use a minimal Node.js base image
-# node 22 needed for some modules pdfjs, etc.
-FROM docker pull node:22.12.0-alpine
+#FROM node:20.14.0-alpine
+FROM node:22.12.0-alpine
 
 WORKDIR /app
 
