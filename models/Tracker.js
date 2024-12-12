@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+// Audit logs
 const auditTrailSchema = new mongoose.Schema({
   action: { type: String, enum: ['create', 'update', 'delete'], required: true },
   timestamp: { type: Date, default: Date.now },
@@ -11,7 +12,6 @@ const auditTrailSchema = new mongoose.Schema({
 // Recipient Schema
 const recipientSchema = new mongoose.Schema({
   receivingDepartment: { type: Schema.Types.ObjectId, ref: 'Department' },
-  seenDate:{ type: Date },
   receiveDate: { type: Date },
   isSeen: { type: Boolean, default: false },
   dateSeen:{ type: Date },
@@ -33,6 +33,7 @@ const trackerSchema = new mongoose.Schema({
   attachment: { type: Buffer, required: false },
   attachmentMimeType: {type: String},
   isArchived: { type: Boolean, default: false },
+  isConfidential:{type: Boolean, default: false },
   recipient: [recipientSchema],
   auditTrail: [auditTrailSchema],
 }, {

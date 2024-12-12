@@ -229,6 +229,7 @@ const commTrackersController = {
   }, */
 
   // Delete a tracker
+/* // this controller gives error on the frontend use the original for now   
   deleteTrackerById: async (req, res) => {
     try {
       const { id } = req.params;
@@ -257,8 +258,8 @@ const commTrackersController = {
       logger.error('Error deleting tracker', { error: error.message });
       res.status(500).json({ message: 'Error deleting tracker', error: error.message });
     }
-  },
-/*   deleteTrackerById: async (req, res) => {
+  }, */ 
+   deleteTrackerById: async (req, res) => {
     try {
       const { id } = req.params;
       const deletedTracker = await CommTrackers.findByIdAndDelete(id);
@@ -272,7 +273,6 @@ const commTrackersController = {
       res.status(500).json({ message: 'Error deleting tracker', error: error.message });
     }
   },
- */
   // Serve an attachment
   getAttachment: async (req, res) => {
     try {
