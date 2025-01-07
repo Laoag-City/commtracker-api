@@ -94,9 +94,118 @@ const commTrackersController = {
       res.status(500).json({ message: 'Error fetching tracker', error: error.message });
     }
   },
-
   // Update a tracker
   updateTrackerById: async (req, res) => {
+    try {
+      const { id } = req.params; // Tracker ID
+      const { recipientId, ...updateFields } = req.body; // Extract recipientId and other fields
+      const user = req.body?.username || "Unknown"; // Assuming user info is in req.body
+  
+      // Validate tracker ID
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "Invalid tracker ID." });
+      }
+  
+      // Validate recipient ID if provided
+      if (recipientId && !mongoose.Types.ObjectId.isValid(recipientId)) {
+        return res.status(400).json({ message: "Invalid recipient ID." });
+      }
+  
+      // Check if the tracker exists
+      const tracker = await CommTrackers.findById(id);
+      if (!tracker) {
+        return res.status(404).json({ message: "Tracker not found." });
+      }
+  
+      let recipientUpdateResult = null;
+  
+      // Handle recipient-specific updates
+      if (recipientId) {
+        const { recipientUpdates } = req.body; // Expected to contain the fields to update for the recipient
+        if (!recipientUpdates || typeof recipientUpdates !== "object") {
+          return res.status(400).json({ message: "Invalid recipient updates." });
+        }
+  
+        // Update specific recipient using $ positional operator
+        recipientUpdateResult = await CommTrackers.updateOne(
+          { _id: id, "recipient._id": recipientId },
+          {
+            $set: Object.entries(recipientUpdates).reduce(
+              (acc, [key, value]) => ({ ...acc, [`recipient.$.${key}`]: value }),
+              {}
+            ),
+            $push: {
+              auditTrail: {
+                action: "update-recipient",
+                modifiedBy: user,
+                changes: { recipientId, ...recipientUpdates },
+              },
+            },
+          }
+        );
+  
+        // Check if the recipient was updated
+        if (recipientUpdateResult.matchedCount === 0) {
+          return res.status(404).json({ message: "Recipient not found in tracker." });
+        }
+      }
+  
+      // Update tracker-level fields if provided
+      if (Object.keys(updateFields).length > 0) {
+        // Exclude attachment fields from audit log
+        const changes = {};
+        for (const key in updateFields) {
+          if (
+            key !== "attachment" &&
+            key !== "attachmentMimeType" &&
+            updateFields[key] !== tracker[key]
+          ) {
+            changes[key] = updateFields[key];
+          }
+        }
+  
+        // Include attachment if provided
+        if (req.file) {
+          updateFields.attachment = req.file.buffer;
+          updateFields.attachmentMimeType = req.file.mimetype;
+        }
+  
+        const updatedTracker = await CommTrackers.findByIdAndUpdate(
+          id,
+          {
+            ...updateFields,
+            $push: {
+              auditTrail: {
+                action: "update",
+                modifiedBy: user,
+                changes,
+              },
+            },
+          },
+          { new: true, runValidators: true }
+        );
+  
+        if (!updatedTracker) {
+          return res.status(404).json({ message: "Tracker not found for update." });
+        }
+  
+        return res.status(200).json({
+          message: "Tracker and recipient updated successfully.",
+          recipientUpdateResult,
+          updatedTracker,
+        });
+      }
+  
+      // If no tracker-level fields are updated, return recipient update result
+      res.status(200).json({
+        message: "Recipient updated successfully.",
+        recipientUpdateResult,
+      });
+    } catch (error) {
+      logger.error("Error updating tracker", { error: error.message });
+      res.status(500).json({ message: "Error updating tracker", error: error.message });
+    }
+/* Old Code   
     try {
       const { id } = req.params;
       const { recipient, ...updateFields } = req.body;
@@ -148,41 +257,9 @@ const commTrackersController = {
       logger.error("Error updating tracker", { error: error.message });
       res.status(400).json({ message: "Error updating tracker", error: error.message });
     }
+ */
   },
-
-  // Delete a tracker
-/* // this controller gives error on the frontend use the original for now 
-   //maybe put deleted documents on a separate collection  
   deleteTrackerById: async (req, res) => {
-    try {
-      const { id } = req.params;
-      //const user = req.user?.name || 'Unknown'; // Assuming user info is in `req.user`
-      const user = req.body?.username || 'Unknown'; // Assuming user info is in `req.user`
-      //console.log(req.body?.username);
-      //console.log(user);
-      //console.log(req.body)
-
-      const tracker = await CommTrackers.findByIdAndDelete(id);
-      if (!tracker) {
-        return res.status(404).json({ message: 'Tracker not found' });
-      }
-
-      // Append delete audit entry
-      tracker.auditTrail.push({
-        action: 'delete',
-        modifiedBy: user,
-        changes: {},
-      });
-      await tracker.save();
-
-      res.status(200).json({ message: 'Tracker deleted successfully' });
-      logger.info('Tracker deleted successfully', { trackerId: id });
-    } catch (error) {
-      logger.error('Error deleting tracker', { error: error.message });
-      res.status(500).json({ message: 'Error deleting tracker', error: error.message });
-    }
-  }, */ 
-   deleteTrackerById: async (req, res) => {
     try {
       const { id } = req.params;
       const deletedTracker = await CommTrackers.findByIdAndDelete(id);
@@ -228,64 +305,63 @@ const commTrackersController = {
       res.status(500).json({ message: 'Error fetching attachment', error: error.message });
     }
   },
-    // Serve an attachment with Auth
-    getAttachmentWithAuth: async (req, res) => {
-      try {
-        const { id } = req.params;
-    
-        // Find the tracker by ID
-        const tracker = await CommTrackers.findById(id);
-        if (!tracker || !tracker.attachment) {
-          return res.status(404).json({ message: "Attachment not found" });
-        }
-    
-        // Extract dateReceived and mimetype for filename
-        const dateReceived = new Date(tracker.dateReceived).toISOString().split("T")[0]; // Format as YYYY-MM-DD
-        const mimeTypeToExtension = {
-          "application/pdf": "pdf",
+  // Serve an attachment with Auth
+  getAttachmentWithAuth: async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      // Find the tracker by ID
+      const tracker = await CommTrackers.findById(id);
+      if (!tracker || !tracker.attachment) {
+        return res.status(404).json({ message: "Attachment not found" });
+      }
+  
+      // Extract dateReceived and mimetype for filename
+      const dateReceived = new Date(tracker.dateReceived).toISOString().split("T")[0]; // Format as YYYY-MM-DD
+      const mimeTypeToExtension = {
+        "application/pdf": "pdf",
           "image/jpeg": "jpg",
           "image/png": "png",
-        };
-        const extension = mimeTypeToExtension[tracker.attachmentMimeType] || "txt"; // Default to 'txt' if mimetype is unknown
-        const filename = `dts-${dateReceived}.${extension}`;
+      };
+      const extension = mimeTypeToExtension[tracker.attachmentMimeType] || "txt"; // Default to 'txt' if mimetype is unknown
+      const filename = `dts-${dateReceived}.${extension}`;
     
-        // Set appropriate headers
-        res.set("Content-Type", tracker.attachmentMimeType);
-        res.set("Content-Disposition", `attachment; filename="${filename}"`);
+      // Set appropriate headers
+      res.set("Content-Type", tracker.attachmentMimeType);
+      res.set("Content-Disposition", `attachment; filename="${filename}"`);
     
-        // Stream the attachment
-        res.send(tracker.attachment);
-      } catch (error) {
+      // Stream the attachment
+      res.send(tracker.attachment);
+       } catch (error) {
         console.error("Error serving attachment:", error);
         res.status(500).json({ message: "Error serving attachment" });
       }
       //console.log(res);
     },
-    getTrackerStatusById: async (req, res) => {
-      try {
-        const { id } = req.params;
-        console.log(id);
-        // Populate recipient array
-        const tracker = await CommTrackers.findById(id)
-        .select('status dateReceived documentTitle isArchived recipient') // Specify the fields to return
-        .populate({
-          path: 'recipient.receivingDepartment',
-          select: 'deptName', // Fields to return within recipient subdocument
-        });
-        // Find the tracker by ID
-        if (!tracker ) {
-          return res.status(404).json({ message: "Document Tracker ID or invalid" });
-        }
-        // TODO: return some data only related to status
-        res.status(200).json(tracker);
-        logger.info('Tracker fetched successfully', { trackerId: id });
-      } catch (error) {
-        logger.error('Error fetching tracker', { error: error.message });
-        res.status(500).json({ message: 'Error fetching tracker', error: error.message });
+  getTrackerStatusById: async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log(id);
+      // Populate recipient array
+      const tracker = await CommTrackers.findById(id)
+      .select('status dateReceived documentTitle isArchived recipient') // Specify the fields to return
+      .populate({
+        path: 'recipient.receivingDepartment',
+        select: 'deptName', // Fields to return within recipient subdocument
+      });
+      // Find the tracker by ID
+      if (!tracker ) {
+        return res.status(404).json({ message: "Document Tracker ID or invalid" });
       }
-      //console.log(res);
+      // TODO: return some data only related to status
+      res.status(200).json(tracker);
+      logger.info('Tracker fetched successfully', { trackerId: id });
+    } catch (error) {
+      logger.error('Error fetching tracker', { error: error.message });
+      res.status(500).json({ message: 'Error fetching tracker', error: error.message });
     }
-
+    //console.log(res);
+  }
 };
 
 module.exports = commTrackersController;
