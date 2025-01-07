@@ -8,7 +8,7 @@ const UserSchema = new mongoose.Schema({
   username: { 
     type: String, 
     required: true, 
-    unique: true,
+    unique: true, // Automatically creates a unique index
     lowercase: true, // Enforce lowercase for case-insensitivity
     trim: true, // Remove leading/trailing spaces
   },
@@ -20,7 +20,7 @@ const UserSchema = new mongoose.Schema({
     type: String, 
     required: true,
     default: 'recipient',
-    enum: ['superadmin','admin','trackerreceiving','recipient', 'viewer','trackermonitor'], // Define allowed roles
+    enum: ['superadmin', 'admin', 'trackerreceiving', 'recipient', 'viewer', 'trackermonitor'], // Define allowed roles
   },
   deptId: { 
     type: ObjectId, 
@@ -54,8 +54,5 @@ UserSchema.post('save', function (error, doc, next) {
     next(error);
   }
 });
-
-// Add indexes for faster lookups
-UserSchema.index({ username: 1 });
 
 module.exports = mongoose.model('User', UserSchema);
