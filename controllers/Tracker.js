@@ -1,7 +1,7 @@
 // File path: controllers/Trackers.js
 const CommTrackers = require('../models/Tracker');
 const logger = require('../utils/logger');
-
+const mongoose = require('mongoose');
 const commTrackersController = {
 
   // Create a new tracker
@@ -97,123 +97,11 @@ const commTrackersController = {
   // Update a tracker
   updateTrackerById: async (req, res) => {
     try {
-      const { id } = req.params; // Tracker ID
-      const { recipientId, ...updateFields } = req.body; // Extract recipientId and other fields
-      const user = req.body?.username || "Unknown"; // Assuming user info is in req.body
-  
-      // Validate tracker ID
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(400).json({ message: "Invalid tracker ID." });
-      }
-  
-      // Validate recipient ID if provided
-      if (recipientId && !mongoose.Types.ObjectId.isValid(recipientId)) {
-        return res.status(400).json({ message: "Invalid recipient ID." });
-      }
-  
-      // Check if the tracker exists
-      const tracker = await CommTrackers.findById(id);
-      if (!tracker) {
-        return res.status(404).json({ message: "Tracker not found." });
-      }
-  
-      let recipientUpdateResult = null;
-  
-      // Handle recipient-specific updates
-      if (recipientId) {
-        const { recipientUpdates } = req.body; // Expected to contain the fields to update for the recipient
-        if (!recipientUpdates || typeof recipientUpdates !== "object") {
-          return res.status(400).json({ message: "Invalid recipient updates." });
-        }
-  
-        // Update specific recipient using $ positional operator
-        recipientUpdateResult = await CommTrackers.updateOne(
-          { _id: id, "recipient._id": recipientId },
-          {
-            $set: Object.entries(recipientUpdates).reduce(
-              (acc, [key, value]) => ({ ...acc, [`recipient.$.${key}`]: value }),
-              {}
-            ),
-            $push: {
-              auditTrail: {
-                action: "update-recipient",
-                modifiedBy: user,
-                changes: { recipientId, ...recipientUpdates },
-              },
-            },
-          }
-        );
-  
-        // Check if the recipient was updated
-        if (recipientUpdateResult.matchedCount === 0) {
-          return res.status(404).json({ message: "Recipient not found in tracker." });
-        }
-      }
-  
-      // Update tracker-level fields if provided
-      if (Object.keys(updateFields).length > 0) {
-        // Exclude attachment fields from audit log
-        const changes = {};
-        for (const key in updateFields) {
-          if (
-            key !== "attachment" &&
-            key !== "attachmentMimeType" &&
-            updateFields[key] !== tracker[key]
-          ) {
-            changes[key] = updateFields[key];
-          }
-        }
-  
-        // Include attachment if provided
-        if (req.file) {
-          updateFields.attachment = req.file.buffer;
-          updateFields.attachmentMimeType = req.file.mimetype;
-        }
-  
-        const updatedTracker = await CommTrackers.findByIdAndUpdate(
-          id,
-          {
-            ...updateFields,
-            $push: {
-              auditTrail: {
-                action: "update",
-                modifiedBy: user,
-                changes,
-              },
-            },
-          },
-          { new: true, runValidators: true }
-        );
-  
-        if (!updatedTracker) {
-          return res.status(404).json({ message: "Tracker not found for update." });
-        }
-  
-        return res.status(200).json({
-          message: "Tracker and recipient updated successfully.",
-          recipientUpdateResult,
-          updatedTracker,
-        });
-      }
-  
-      // If no tracker-level fields are updated, return recipient update result
-      res.status(200).json({
-        message: "Recipient updated successfully.",
-        recipientUpdateResult,
-      });
-    } catch (error) {
-      logger.error("Error updating tracker", { error: error.message });
-      res.status(500).json({ message: "Error updating tracker", error: error.message });
-    }
-/* Old Code   
-    try {
       const { id } = req.params;
       const { recipient, ...updateFields } = req.body;
       //const user = req.user?.name || 'Unknown'; // Assuming user info is in `req.user`
       const user = req.body?.username || 'Unknown'; // Assuming user info is in `req.user`
-      //console.log(req.body?.username);
-      //console.log(user);
-      //console.log(req.body)
+
  
       const parsedRecipient = typeof recipient === "string" ? JSON.parse(recipient) : recipient;
   
@@ -257,7 +145,68 @@ const commTrackersController = {
       logger.error("Error updating tracker", { error: error.message });
       res.status(400).json({ message: "Error updating tracker", error: error.message });
     }
- */
+  },
+// Update a recipient by tracker ID
+  updateRecipientByTrackerId: async (req, res) => {
+    //const trackerId = req.params.id; // Extract parameters from URL
+    const { id: trackerId, recipientid: recipientId } = req.params;
+    //const recipientId = req.params.recipientid;
+    const statusfromquery = req.query?.status; // Extract the new status from query string
+    const statusfrombody = req.body?.status;
+    const user = req.body?.username; // TODO: validate username
+    // console.log(req.params);
+    // console.log(trackerId);
+    // console.log(recipientId);
+    // console.log(req.body?.status);
+    // console.log(statusfrombody);
+    // console.log(req.query.status);
+    // console.log(statusfromquery);
+    // console.log(statusfrombody);
+
+    // Validate status
+    const allowedStatuses = ['pending', 'approved', 'rejected', 'in-progress', 'forwarded'];
+    if (!allowedStatuses.includes(statusfrombody)) {
+      return res.status(400).json({ error: 'Invalid status value.' });
+    }
+      // Validate MongoDB ObjectIDs
+    if (!mongoose.Types.ObjectId.isValid(trackerId) || !mongoose.Types.ObjectId.isValid(recipientId)) {
+      return res.status(400).json({ error: 'Invalid trackerId or recipientId.' });
+    }
+/*     const changes = {};
+    for (const key in updateFields) {
+      if (key !== "attachment" && key !== "attachmentMimeType" && updateFields[key] !== originalTracker[key]) {
+        changes[key] = updateFields[key];
+      }
+    } */
+
+    try {
+      // Update recipient status
+      const result = await CommTrackers.updateOne(
+        { _id: trackerId, 'recipient._id': recipientId },
+        { $set: { 'recipient.$.status': statusfrombody } },
+        {$push: {
+          auditTrail: {
+            action: 'update',
+            modifiedBy: user
+          },
+        }}
+        
+      );
+      console.log(result);
+
+      if (result.modifiedCount > 0) {
+        return res.status(200).json({ message: 'Recipient status updated successfully.' });
+      } else {
+        return res
+          .status(200)
+          .json({ message: 'Recipient status was already set to the given value.' });
+      }
+      } catch (error) {
+        console.error('Error updating recipient status:', error.message);
+        return res
+        .status(500)
+        .json({ error: 'An error occurred while updating recipient status.' });
+      }
   },
   deleteTrackerById: async (req, res) => {
     try {

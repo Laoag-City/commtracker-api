@@ -33,6 +33,13 @@ router.put(
   commTrackersController.updateTrackerById
 ); // Update
 
+router.put(
+  '/:id/recipients/:recipientid',
+  authenticateJWT,
+  validateTrackerId,          // Validate ID
+  commTrackersController.updateRecipientByTrackerId
+); // Update recipient using Tracker ID
+
 router.delete(
   '/:id',
   authenticateJWT,
@@ -71,20 +78,3 @@ router.use((err, req, res, next) => {
   next(err);
 });
 module.exports = router;
-
-/* // File path: routes/Trackers.js
-const express = require('express');
-const commTrackersController = require('../controllers/Tracker');
-const authenticateJWT = require('../middlewares/authMiddleware');
-
-const router = express.Router();
-
-// CRUD Routes
-router.post('/new',  authenticateJWT, commTrackersController.createTracker); // Create
-router.get('/',  authenticateJWT, commTrackersController.getAllTrackers); // Read All
-router.get('/:id',  authenticateJWT, commTrackersController.getTrackerById); // Read One
-router.put('/:id',  authenticateJWT, commTrackersController.updateTrackerById); // Update
-router.delete('/:id',  authenticateJWT, commTrackersController.deleteTrackerById); // Delete
-
-module.exports = router;
- */
