@@ -148,21 +148,8 @@ const commTrackersController = {
   },
 // Update a recipient by tracker ID
   updateRecipientByTrackerId: async (req, res) => {
-    //const trackerId = req.params.id; // Extract parameters from URL
     const { id: trackerId, recipientid: recipientId } = req.params;
     const { status, isSeen, remarks, username: user } = req.body;
-    //const recipientId = req.params.recipientid;
-    const statusfromquery = req.query?.status; // Extract the new status from query string
-    const statusfrombody = req.body?.status;
-    // const user = req.body?.username; // TODO: validate username
-    // console.log(req.params);
-    // console.log(trackerId);
-    // console.log(recipientId);
-    // console.log(req.body?.status);
-    // console.log(statusfrombody);
-    // console.log(req.query.status);
-    // console.log(statusfromquery);
-    // console.log(statusfrombody);
 
     // Validate status
     const allowedStatuses = ['pending', 'approved', 'rejected', 'in-progress', 'forwarded'];
@@ -176,7 +163,7 @@ const commTrackersController = {
 
     try {
       // Update recipient status
-          // Prepare changes for audit trail
+      // Prepare changes for audit trail
       const changes = {};
       if (status) changes['status'] = status;
       if (typeof isSeen !== 'undefined') changes['isSeen'] = isSeen;
