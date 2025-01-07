@@ -45,52 +45,6 @@ const commTrackersController = {
     }
   },
   
-/*   createTracker: async (req, res) => {
-    try {
-      const { fromName, documentTitle, dateReceived, recipient } = req.body;
-      const user = req.body?.username || 'Unknown'; // Assuming user info is in `req.user`
-      //console.log(req.body?.username);
-      //console.log(user);
-      //console.log(req.body)
-
-      // Parse the recipient field if it is a JSON string
-      const parsedRecipient = typeof recipient === "string" ? JSON.parse(recipient) : recipient;
-
-      // Validate required fields
-      if (!fromName || !documentTitle || !dateReceived) {
-        return res.status(400).json({ message: 'Required fields are missing' });
-      }
-
-      const tracker = new CommTrackers({
-        fromName,
-        documentTitle,
-        dateReceived,
-        recipient: parsedRecipient,
-        attachment: req.file ? req.file.buffer : null,
-        attachmentMimeType: req.file ? req.file.mimetype : null,
-        auditTrail: [
-          {
-            action: 'create',
-            modifiedBy: user,
-            changes: { fromName, documentTitle, dateReceived },
-          },
-        ],
-      });
-
-      //console.log(req.body.recipient);
-      //console.log(parsedRecipient);
-
-      const savedTracker = await tracker.save();
-      res.status(201).json(savedTracker);
-      logger.info('Tracker document created successfully', { trackerId: tracker._id });
-    } catch (error) {
-      logger.error('Error creating Tracker document', { error: error.message });
-      res.status(400).json({ message: 'Error creating tracker', error: error.message });
-      //console.log(req.body.recipient);
-      //console.log(parsedRecipient);
-    }
-  }, */
-
   // Get all trackers with pagination and optional search
   getAllTrackers: async (req, res) => {
     try {
@@ -195,41 +149,10 @@ const commTrackersController = {
       res.status(400).json({ message: "Error updating tracker", error: error.message });
     }
   },
-/*   updateTrackerById: async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { recipient, ...updateFields } = req.body;
-  
-      // Parse the recipient field if it is a JSON string
-      const parsedRecipient = typeof recipient === "string" ? JSON.parse(recipient) : recipient;
-  
-      // Include attachment if provided
-      if (req.file) {
-        updateFields.attachment = req.file.buffer;
-        updateFields.attachmentMimeType = req.file.mimetype;
-      }
-  
-      // Update the tracker
-      const updatedTracker = await CommTrackers.findByIdAndUpdate(
-        id,
-        { ...updateFields, recipient: parsedRecipient },
-        { new: true, runValidators: true }
-      );
-  
-      if (!updatedTracker) {
-        return res.status(404).json({ message: "Tracker not found" });
-      }
-  
-      res.status(200).json(updatedTracker);
-    } catch (error) {
-      console.error("Error updating tracker:", error);
-      res.status(400).json({ message: "Error updating tracker", error: error.message });
-    }
-    
-  }, */
 
   // Delete a tracker
-/* // this controller gives error on the frontend use the original for now   
+/* // this controller gives error on the frontend use the original for now 
+   //maybe put deleted documents on a separate collection  
   deleteTrackerById: async (req, res) => {
     try {
       const { id } = req.params;
