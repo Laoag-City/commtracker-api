@@ -99,7 +99,6 @@ const commTrackersController = {
     try {
       const { id } = req.params;
       const { recipient, ...updateFields } = req.body;
-      //const user = req.user?.name || 'Unknown'; // Assuming user info is in `req.user`
       const user = req.body?.username || 'Unknown'; // Assuming user info is in `req.user`
 
  
@@ -204,6 +203,98 @@ const commTrackersController = {
         .json({ error: 'An error occurred while updating recipient data.' });
     }
   },
+  /**
+  * Filter receivingDepartment records
+  * @param {Object} req - Express request object
+  * @param {Object} res - Express response object
+  */
+  // Filter receivingDepartment records
+  filterReceivingDepartments: async (req, res) => {
+    try {
+      const { receivingDepartment, status, isSeen, dateSeenFrom, dateSeenTo } = req.query;
+  
+      // Log incoming query params for debugging
+      console.log('Query Params:', req.query);
+      console.log(receivingDepartment);
+      console.log(status);
+      console.log(isSeen);
+      console.log(dateSeenFrom);
+      console.log(dateSeenTo);
+      console.log(req.query);
+    
+      // Build the filter criteria
+      const recipientFilter = {};
+      if (receivingDepartment) {
+        recipientFilter['recipient.receivingDepartment'] = new mongoose.Types.ObjectId(receivingDepartment);
+      }
+      if (status) {
+        recipientFilter['recipient.status'] = status;
+      }
+      if (isSeen !== undefined) {
+        recipientFilter['recipient.isSeen'] = isSeen === 'true';
+      }
+      if (dateSeenFrom || dateSeenTo) {
+        recipientFilter['recipient.dateSeen'] = {};
+        if (dateSeenFrom) recipientFilter['recipient.dateSeen'].$gte = new Date(dateSeenFrom);
+        if (dateSeenTo) recipientFilter['recipient.dateSeen'].$lte = new Date(dateSeenTo);
+      }
+  
+      console.log('Constructed Filter:', recipientFilter);
+  
+      // Use aggregation pipeline to filter nested recipient array
+      // TODO: add the attachment object as well
+      const results = await CommTrackers.aggregate([
+        { $unwind: '$recipient' },
+        { $match: recipientFilter }, // Apply filter
+        {
+          $project: {
+            fromName: 1,
+            documentTitle: 1,                               
+            recipient: 1,
+          },
+        },
+      ]);
+  
+      res.status(200).json({
+        success: true,
+        data: results,
+      });
+    } catch (error) {
+      console.error('Error filtering receiving departments:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+      });
+    }
+  },
+
+  // Get audit trail logs for a tracker
+  getAuditTrail: async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      // Validate ObjectId
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: 'Invalid tracker ID' });
+      }
+
+      // Fetch audit logs
+      const tracker = await CommTrackers.findById(id, { auditTrail: 1 });
+
+      if (!tracker || tracker.auditTrail.length === 0) {
+        return res.status(404).json({ error: 'No audit logs found' });
+      }
+
+      res.status(200).json({
+        success: true,
+        data: tracker.auditTrail,
+      });
+    } catch (error) {
+      console.error('Error fetching audit trail:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
   deleteTrackerById: async (req, res) => {
     try {
       const { id } = req.params;
