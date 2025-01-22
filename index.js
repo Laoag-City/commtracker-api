@@ -14,7 +14,7 @@ const logger = require('./utils/logger');
 const app = express();
 // Use Helmet to secure HTTP headers
 
- app.use(helmet(
+app.use(helmet(
   helmet({
     contentSecurityPolicy: {
       directives: {
@@ -49,7 +49,7 @@ mongoose.connect(config.mongoUri, {})
       });
     } else {
       app.listen(config.port, () => {
-      logger.info(`Server is up and running on port ${config.port}`);
+        logger.info(`Server is up and running on port ${config.port}`);
       });
     }
   })
