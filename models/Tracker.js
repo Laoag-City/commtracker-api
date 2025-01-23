@@ -30,7 +30,7 @@ const trackerSchema = new mongoose.Schema({
   fromName: { type: String, required: true },
   documentTitle: { type: String, required: true },
   dateReceived: { type: Date },
-  attachment: { type: Buffer },
+  attachment: { type: Schema.Types.ObjectId, ref: 'attachments' }, // GridFS reference for attachment
   attachmentMimeType: { type: String },
   isArchived: { type: Boolean, default: false },
   isConfidential: { type: Boolean, default: false },
