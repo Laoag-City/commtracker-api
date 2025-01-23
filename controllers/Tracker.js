@@ -51,7 +51,7 @@ const commTrackersController = {
         dateReceived,
         recipient: parsedRecipient,
         //attachment: req.file ? req.file.buffer : null,
-        fileId,
+        attachment: fileId,
         attachmentMimeType: req.file ? req.file.mimetype : null,
         auditTrail: [
           {
@@ -125,15 +125,26 @@ const commTrackersController = {
     try {
       const { id } = req.params;
       const { recipient, ...updateFields } = req.body;
-      const user = req.body?.username || 'Unknown'; // Assuming user info is in `req.user`
-
-
+      const user = req.body?.username || 'Unknown';
       const parsedRecipient = typeof recipient === "string" ? JSON.parse(recipient) : recipient;
 
-      // Include attachment if provided, but do not include it in the audit log
+      // Initialize GridFS Bucket if a new file is provided
+      let fileId = null;
       if (req.file) {
-        updateFields.attachment = req.file.buffer;
-        updateFields.attachmentMimeType = req.file.mimetype;
+        const fileBuffer = req.file.buffer;
+        const fileMimeType = req.file.mimetype;
+
+        const bucket = new GridFSBucket(mongoose.connection.db, {
+          bucketName: 'attachments'
+        });
+
+        const uploadStream = bucket.openUploadStream(req.file.originalname, {
+          contentType: fileMimeType,
+          metadata: { user: user }
+        });
+
+        uploadStream.end(fileBuffer);
+        fileId = uploadStream.id; // Get the fileId from GridFS
       }
 
       const originalTracker = await CommTrackers.findById(id);
@@ -141,12 +152,15 @@ const commTrackersController = {
         return res.status(404).json({ message: "Tracker not found" });
       }
 
-      // Filter out attachment-related fields from the audit log
       const changes = {};
       for (const key in updateFields) {
-        if (key !== "attachment" && key !== "attachmentMimeType" && updateFields[key] !== originalTracker[key]) {
+        if (updateFields[key] !== originalTracker[key]) {
           changes[key] = updateFields[key];
         }
+      }
+
+      if (fileId) {
+        updateFields.attachment = fileId;
       }
 
       const updatedTracker = await CommTrackers.findByIdAndUpdate(
@@ -167,8 +181,8 @@ const commTrackersController = {
 
       res.status(200).json(updatedTracker);
     } catch (error) {
-      logger.error("Error updating tracker", { error: error.message });
-      res.status(400).json({ message: "Error updating tracker", error: error.message });
+      logger.error('Error updating tracker', { error: error.message });
+      res.status(400).json({ message: 'Error updating tracker', error: error.message });
     }
   },
   // Update a recipient by tracker ID
