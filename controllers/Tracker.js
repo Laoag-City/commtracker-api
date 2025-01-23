@@ -13,7 +13,6 @@ const commTrackersController = {
   createTracker: async (req, res) => {
     try {
       const { fromName, documentTitle, dateReceived, recipient } = req.body;
-      //const user = req.user?.name || 'Unknown'; // Assuming user info is in `req.user`
       const user = req.body?.username || 'Unknown'; // Assuming user info is in `req.user`
 
       //console.log(req.body?.username);
@@ -50,7 +49,6 @@ const commTrackersController = {
         documentTitle,
         dateReceived,
         recipient: parsedRecipient,
-        //attachment: req.file ? req.file.buffer : null,
         attachment: fileId,
         attachmentMimeType: req.file ? req.file.mimetype : null,
         auditTrail: [
@@ -185,8 +183,10 @@ const commTrackersController = {
       res.status(400).json({ message: 'Error updating tracker', error: error.message });
     }
   },
-  // Update a recipient by tracker ID
+  // Update a recipient array using tracker ID
   updateRecipientByTrackerId: async (req, res) => {
+    //TODO: validate the recipient object
+    //API Path = /trackers/:id/recipient/:recipientid
     const { id: trackerId, recipientid: recipientId } = req.params;
     const { status, isSeen, remarks, username: user } = req.body;
 

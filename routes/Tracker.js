@@ -92,7 +92,7 @@ router.put(
  *     description: Update recipient status, remarks, and other data
  */
 router.put(
-  '/:id/recipients/:recipientid',
+  '/:id/recipient/:recipientid',
   authenticateJWT,
   validateTrackerId,
   commTrackersController.updateRecipientByTrackerId
