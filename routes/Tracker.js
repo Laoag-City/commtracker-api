@@ -1,5 +1,6 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
+const multer = require('multer'); // Missing import for Multer
 const commTrackersController = require('../controllers/Tracker');
 const authenticateJWT = require('../middlewares/authMiddleware');
 const upload = require('../middlewares/fileUpload');
@@ -27,7 +28,7 @@ const limiter = rateLimit({
 router.post(
   '/new',
   authenticateJWT,
-  upload.single('attachment'),
+  upload.single('file'),
   validateCreateTracker,
   commTrackersController.createTracker
 ); // Create

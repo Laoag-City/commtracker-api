@@ -340,28 +340,26 @@ const commTrackersController = {
     try {
       const { id } = req.params;
 
-      // Find the tracker by ID
       const tracker = await CommTrackers.findById(id);
       if (!tracker || !tracker.attachment) {
         return res.status(404).json({ message: 'Attachment not found' });
       }
 
-      // Extract dateReceived and mimetype for filename
-      const dateReceived = new Date(tracker.dateReceived).toISOString().split("T")[0]; // Format as YYYY-MM-DD
-      const mimeTypeToExtension = {
-        "application/pdf": "pdf",
-        "image/jpeg": "jpg",
-        "image/png": "png",
-      };
-      const extension = mimeTypeToExtension[tracker.attachmentMimeType] || "txt"; // Default to 'txt' if mimetype is unknown
-      const filename = `dts-${dateReceived}.${extension}`;
+      // Initialize GridFS Bucket to fetch file
+      const bucket = new GridFSBucket(mongoose.connection.db, {
+        bucketName: 'attachments'
+      });
 
-      // Set appropriate headers
-      res.set("Content-Type", tracker.attachmentMimeType);
-      res.set("Content-Disposition", `attachment; filename="${filename}"`);
+      const downloadStream = bucket.openDownloadStream(tracker.attachment);
+      downloadStream.on('error', (error) => {
+        return res.status(404).json({ message: 'Error fetching attachment', error: error.message });
+      });
 
-      // Stream the attachment  
-      res.send(tracker.attachment);
+      // Set file headers
+      const file = await bucket.find({ _id: tracker.attachment }).toArray();
+      const fileName = file[0]?.filename || 'attachment';
+      res.set('Content-Disposition', `attachment; filename=${fileName}`);
+      downloadStream.pipe(res);
     } catch (error) {
       logger.error('Error fetching attachment', { error: error.message });
       res.status(500).json({ message: 'Error fetching attachment', error: error.message });
