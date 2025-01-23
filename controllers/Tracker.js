@@ -2,6 +2,11 @@
 const CommTrackers = require('../models/Tracker');
 const logger = require('../utils/logger');
 const mongoose = require('mongoose');
+const fs = require('fs');
+const path = require('path');
+const { GridFSBucket } = require('mongodb');
+const gridfsStream = require('gridfs-stream');
+
 const commTrackersController = {
 
   // Create a new tracker
@@ -10,6 +15,7 @@ const commTrackersController = {
       const { fromName, documentTitle, dateReceived, recipient } = req.body;
       //const user = req.user?.name || 'Unknown'; // Assuming user info is in `req.user`
       const user = req.body?.username || 'Unknown'; // Assuming user info is in `req.user`
+
       //console.log(req.body?.username);
       //console.log(user);
       //console.log(req.body)
@@ -20,12 +26,32 @@ const commTrackersController = {
         return res.status(400).json({ message: 'Required fields are missing' });
       }
 
+      let fileId = null;
+      if (req.file) {
+        const fileBuffer = req.file.buffer;
+        const fileMimeType = req.file.mimetype;
+
+        // Initialize GridFS Bucket
+        const bucket = new GridFSBucket(mongoose.connection.db, {
+          bucketName: 'attachments'
+        });
+
+        const uploadStream = bucket.openUploadStream(req.file.originalname, {
+          contentType: fileMimeType,
+          metadata: { user: user, documentTitle, fromName }
+        });
+
+        uploadStream.end(fileBuffer);
+        fileId = uploadStream.id; // Get the fileId from GridFS
+      }
+
       const tracker = new CommTrackers({
         fromName,
         documentTitle,
         dateReceived,
         recipient: parsedRecipient,
-        attachment: req.file ? req.file.buffer : null,
+        //attachment: req.file ? req.file.buffer : null,
+        fileId,
         attachmentMimeType: req.file ? req.file.mimetype : null,
         auditTrail: [
           {

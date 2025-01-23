@@ -14,7 +14,7 @@ const validateEnv = () => {
 validateEnv();
 
 const config = {
-  port: process.env.PORT || (process.env.NODE_ENV === 'production' ? 3086 : 3006),
+  port: process.env.PORT || (process.env.NODE_ENV === 'production' ? 3084 : 3004),
   mongoUri: process.env.NODE_ENV === 'production' ? process.env.MONGO_URI_PROD : process.env.MONGO_URI_DEV,
   jwtSecret: process.env.JWT_SECRET,
   tlsOptions: process.env.NODE_ENV === 'production' ? {
