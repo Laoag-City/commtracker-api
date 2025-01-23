@@ -412,6 +412,7 @@ const commTrackersController = {
     }
     //console.log(res);
   },
+  // Unauthenticated route to get tracker status
   getTrackerStatusById: async (req, res) => {
     try {
       const { id } = req.params;
