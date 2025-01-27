@@ -119,6 +119,7 @@ const commTrackersController = {
     }
   },
   // Update a tracker
+  // TODO: Add validation for recipient object
   updateTrackerById: async (req, res) => {
     try {
       const { id } = req.params;
@@ -230,7 +231,6 @@ const commTrackersController = {
       if (result.matchedCount === 0) {
         return res.status(404).json({ error: 'Tracker or recipient not found.' });
       }
-
       if (result.modifiedCount > 0) {
         return res.status(200).json({ message: 'Recipient data updated successfully.' });
       } else {
@@ -249,6 +249,7 @@ const commTrackersController = {
   * @param {Object} res - Express response object
   */
   // Filter receivingDepartment records
+  // TODO add department name to the response
   filterReceivingDepartments: async (req, res) => {
     try {
       const { receivingDepartment, status, isSeen, dateSeenFrom, dateSeenTo } = req.query;
