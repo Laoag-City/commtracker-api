@@ -48,30 +48,6 @@ const commTrackersController = {
       logger.error('Error creating Tracker document', { error: error.message });
       res.status(400).json({ message: 'Error creating tracker', error: error.message });
     }
-    //old code
-    //   const tracker = new CommTrackers({
-    //     fromName,
-    //     documentTitle,
-    //     dateReceived,
-    //     recipient: parsedRecipient,
-    //     attachment: fileId,
-    //     attachmentMimeType: req.file ? req.file.mimetype : null,
-    //     auditTrail: [
-    //       {
-    //         action: 'create',
-    //         modifiedBy: user,
-    //         changes: { fromName, documentTitle, dateReceived }, // Do not include attachments
-    //       },
-    //     ],
-    //   });
-
-    //   const savedTracker = await tracker.save();
-    //   res.status(201).json(savedTracker);
-    //   logger.info('Tracker document created successfully', { trackerId: tracker._id });
-    // } catch (error) {
-    //   logger.error('Error creating Tracker document', { error: error.message });
-    //   res.status(400).json({ message: 'Error creating tracker', error: error.message });
-    // }
   },
 
   // Get all trackers with pagination and optional search
@@ -235,63 +211,6 @@ const commTrackersController = {
       logger.error('Error updating recipient data', { error: error.message });
       return res.status(500).json({ error: 'An error occurred while updating recipient data.' });
     }
-    //OLD code
-    //TODO: validate the recipient object
-    //API Path = /trackers/:id/recipient/:recipientid
-    // const { id: trackerId, recipientid: recipientId } = req.params;
-    // const { status, isSeen, remarks, username: user } = req.body;
-
-    // Validate status
-    // const allowedStatuses = ['pending', 'approved', 'rejected', 'in-progress', 'forwarded'];
-    // if (!status || !allowedStatuses.includes(status)) {
-    //   return res.status(400).json({ error: 'Invalid or missing status value.' });
-    // }
-    // // Validate MongoDB ObjectIDs
-    // if (!mongoose.Types.ObjectId.isValid(trackerId) || !mongoose.Types.ObjectId.isValid(recipientId)) {
-    //   return res.status(400).json({ error: 'Invalid trackerId or recipientId.' });
-    // }
-
-    // try {
-    // Update recipient status
-    // Prepare changes for audit trail
-    // const changes = {};
-    // if (status) changes['status'] = status;
-    // if (typeof isSeen !== 'undefined') changes['isSeen'] = isSeen;
-    // if (remarks) changes['remarks'] = remarks;
-
-    // const result = await CommTrackers.updateOne(
-    //   { _id: trackerId, 'recipient._id': recipientId },
-    //   {
-    //     $set: {
-    //       'recipient.$.status': status,
-    //       'recipient.$.isSeen': isSeen,
-    //       'recipient.$.remarks': remarks,
-    //     },
-    //     $push: {
-    //       auditTrail: {
-    //         action: 'update-recipient',
-    //         modifiedBy: user || 'Unknown',
-    //         changes, // Record the changes made
-    //         timestamp: new Date(),
-    //       },
-    //     },
-    //   }
-    // );
-    // Handle response
-    //   if (result.matchedCount === 0) {
-    //     return res.status(404).json({ error: 'Tracker or recipient not found.' });
-    //   }
-    //   if (result.modifiedCount > 0) {
-    //     return res.status(200).json({ message: 'Recipient data updated successfully.' });
-    //   } else {
-    //     return res.status(200).json({ message: 'No changes were made to the recipient data.' });
-    //   }
-    // } catch(error) {
-    //   console.error('Error updating recipient data:', error.message);
-    //   return res
-    //     .status(500)
-    //     .json({ error: 'An error occurred while updating recipient data.' });
-    // }
   },
   /**
   * Filter receivingDepartment records
