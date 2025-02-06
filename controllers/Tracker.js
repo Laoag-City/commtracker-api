@@ -256,13 +256,42 @@ const commTrackersController = {
       const results = await CommTrackers.aggregate([
         { $unwind: '$recipient' },
         { $match: recipientFilter }, // Apply filter
+        // {
+        //   $project: {
+        //     fromName: 1,
+        //     documentTitle: 1,
+        //     recipient: 1,
+        //   },
+        //},
         {
-          $project: {
-            fromName: 1,
-            documentTitle: 1,
-            recipient: 1,
-          },
+          $lookup: {
+            from: 'departments', // Collection name in MongoDB
+            localField: 'recipient.receivingDepartment',
+            foreignField: '_id',
+            as: 'departmentDetails'
+          }
         },
+        { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }, // Unwind to get a single object
+        {
+          $group: {
+            _id: '$_id',
+            fromName: { $first: '$fromName' },
+            documentTitle: { $first: '$documentTitle' },
+            attachment: { $first: '$attachment' },
+            attachmentMimeType: { $first: '$attachmentMimeType' },
+            recipients: {
+              $push: {
+                receivingDepartment: '$recipient.receivingDepartment',
+                receiveDate: '$recipient.receiveDate',
+                isSeen: '$recipient.isSeen',
+                dateSeen: '$recipient.dateSeen',
+                remarks: '$recipient.remarks',
+                status: '$recipient.status',
+                departmentDetails: '$departmentDetails' // Embedded department info
+              }
+            }
+          }
+        }
       ]);
 
       res.status(200).json({
