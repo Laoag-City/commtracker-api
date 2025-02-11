@@ -1,4 +1,6 @@
 const express = require('express');
+const mongoose = require('mongoose');
+const { GridFSBucket } = mongoose.mongo;
 const rateLimit = require('express-rate-limit');
 const multer = require('multer');
 const commTrackersController = require('../controllers/Tracker');
@@ -136,6 +138,27 @@ router.get(
   validateTrackerId,
   commTrackersController.getAttachmentWithAuth
 ); // Serve attachment with extra auth
+
+// Stream file from GridFS by ObjectId
+router.get('/files/:id', async (req, res) => {
+  try {
+    const fileId = new mongoose.Types.ObjectId(req.params.id);
+    const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'attachments' });
+
+    const downloadStream = bucket.openDownloadStream(fileId);
+    res.set('Content-Type', req.query.mimeType || 'application/octet-stream');
+
+    downloadStream.on('error', (err) => {
+      console.error('Error streaming file:', err);
+      res.status(404).send('File not found');
+    });
+
+    downloadStream.pipe(res);
+  } catch (err) {
+    console.error('Error fetching file:', err);
+    res.status(500).send('Internal server error');
+  }
+});
 
 // Unauthenticated Route for Tracker Status
 
