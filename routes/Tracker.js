@@ -142,21 +142,29 @@ router.get(
 // Stream file from GridFS by ObjectId
 router.get('/files/:id', async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid file ID format" });
+    }
+
     const fileId = new mongoose.Types.ObjectId(req.params.id);
-    const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'attachments' });
+    const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: "attachments" });
 
     const downloadStream = bucket.openDownloadStream(fileId);
-    res.set('Content-Type', req.query.mimeType || 'application/octet-stream');
 
-    downloadStream.on('error', (err) => {
-      console.error('Error streaming file:', err);
-      res.status(404).send('File not found');
+    // Handle stream errors
+    downloadStream.on("error", (err) => {
+      console.error("Error streaming file:", err);
+      return res.status(404).json({ message: "File not found" });
     });
 
+    // Set response headers for content type
+    res.setHeader("Content-Type", req.query.mimeType || "application/octet-stream");
+
+    // Stream file data to the client
     downloadStream.pipe(res);
   } catch (err) {
-    console.error('Error fetching file:', err);
-    res.status(500).send('Internal server error');
+    console.error("Error fetching file:", err);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 

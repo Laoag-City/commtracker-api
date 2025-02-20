@@ -4,4 +4,4 @@
 /exceptions.log
 /node_modules
 /package-lock.json
-core
+core.*
