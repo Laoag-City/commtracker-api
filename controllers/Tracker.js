@@ -8,65 +8,80 @@ const { GridFSBucket } = require('mongodb');
 const gridfsStream = require('gridfs-stream');
 
 const commTrackersController = {
-
-  // Create a new tracker
   createTracker: async (req, res) => {
     try {
-      const { fromName, documentTitle, dateReceived, recipient } = req.body;
+      console.log("Incoming request body:", req.body);
+      console.log("Incoming file:", req.file ? req.file.originalname : "No file uploaded");
+
+      const { fromName, documentTitle, dateReceived } = req.body;
       if (!fromName || !documentTitle || !dateReceived) {
-        return res.status(400).json({ message: 'Required fields are missing' });
-      }
-      const user = req.body?.username || 'Unknown';
-
-      let parsedRecipient;
-      try {
-        parsedRecipient = typeof recipient === "string" ? JSON.parse(recipient) : recipient;
-      } catch (error) {
-        return res.status(400).json({ message: 'Invalid recipient format' });
+        return res.status(400).json({ message: "Required fields are missing" });
       }
 
-      let fileId = null;
-      /*       if (req.file) {
-              const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'attachments' });
-              const uploadStream = bucket.openUploadStream(req.file.originalname, {
-                contentType: req.file.mimetype,
-                metadata: { user, documentTitle, fromName }
-              });
-              uploadStream.end(req.file.buffer);
-              await new Promise((resolve) => uploadStream.on('finish', resolve));
-              fileId = uploadStream.id;
-            } */
-      if (req.file) {
-        const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'attachments' });
-        const uploadStream = bucket.openUploadStream(req.file.originalname, {
-          contentType: req.file.mimetype,
-          metadata: { user, documentTitle, fromName },
-        });
+      const user = req.body?.username || "Unknown";
 
-        uploadStream.end(req.file.buffer);
+      // Convert recipient fields into an array
+      const recipientArray = [];
+      Object.keys(req.body).forEach((key) => {
+        const match = key.match(/^recipient\[(\d+)\]\[(\w+)\]$/);
+        if (match) {
+          const index = parseInt(match[1], 10);
+          const field = match[2];
 
-        await new Promise((resolve, reject) => {
-          uploadStream.on('finish', () => resolve());
-          uploadStream.on('error', (err) => reject(err)); // Handle errors during upload
-        });
-
-        fileId = uploadStream.id;
-      }
-
-      const tracker = new CommTrackers({
-        fromName, documentTitle, dateReceived, recipient: parsedRecipient, attachment: fileId,
-        attachmentMimeType: req.file ? req.file.mimetype : null,
-        auditTrail: [{ action: 'create', modifiedBy: user, changes: { fromName, documentTitle, dateReceived } }],
+          if (!recipientArray[index]) recipientArray[index] = {};
+          recipientArray[index][field] = req.body[key];
+        }
       });
+
+      console.log("Parsed Recipients:", recipientArray);
+
+      // Process File Upload using GridFS
+      let fileId = null;
+      if (req.file) {
+        try {
+          const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: "attachments" });
+          const uploadStream = bucket.openUploadStream(req.file.originalname, {
+            contentType: req.file.mimetype,
+            metadata: { user, documentTitle, fromName },
+          });
+
+          uploadStream.end(req.file.buffer);
+
+          await new Promise((resolve, reject) => {
+            uploadStream.on("finish", () => {
+              fileId = uploadStream.id;
+              resolve();
+            });
+            uploadStream.on("error", (err) => reject(err));
+          });
+
+          console.log("File uploaded successfully, ID:", fileId);
+        } catch (error) {
+          console.error("Error uploading file:", error);
+          return res.status(500).json({ message: "File upload failed", error: error.message });
+        }
+      }
+
+      // Save Tracker Document
+      const tracker = new CommTrackers({
+        fromName,
+        documentTitle,
+        dateReceived,
+        recipient: recipientArray,
+        attachment: fileId,
+        attachmentMimeType: req.file ? req.file.mimetype : null,
+        auditTrail: [{ action: "create", modifiedBy: user, changes: { fromName, documentTitle, dateReceived } }],
+      });
+
       const savedTracker = await tracker.save();
+      console.log("Tracker saved successfully:", savedTracker._id);
+
       res.status(201).json(savedTracker);
-      logger.info('Tracker document created successfully', { trackerId: tracker._id });
     } catch (error) {
-      logger.error('Error creating Tracker document', { error: error.message });
-      res.status(400).json({ message: 'Error creating tracker', error: error.message });
+      console.error("Error creating tracker:", error);
+      res.status(500).json({ message: "Error creating tracker", error: error.message });
     }
   },
-
   // Get all trackers with pagination and optional search
   getAllTrackers: async (req, res) => {
     try {
@@ -119,55 +134,158 @@ const commTrackersController = {
   // Update a tracker
   // TODO: Add validation for recipient object
   updateTrackerById: async (req, res) => {
+    /*     try {
+          const { id } = req.params;
+          const { recipient, ...updateFields } = req.body;
+          const user = req.body?.username || 'Unknown';
+          const parsedRecipient = typeof recipient === "string" ? JSON.parse(recipient) : recipient;
+    
+          // Initialize GridFS Bucket if a new file is provided
+          let fileId = null;
+          if (req.file) {
+            const fileBuffer = req.file.buffer;
+            const fileMimeType = req.file.mimetype;
+    
+            const bucket = new GridFSBucket(mongoose.connection.db, {
+              bucketName: 'attachments'
+            });
+    
+            const uploadStream = bucket.openUploadStream(req.file.originalname, {
+              contentType: fileMimeType,
+              metadata: { user: user }
+            });
+    
+            uploadStream.end(fileBuffer);
+            fileId = uploadStream.id; // Get the fileId from GridFS
+          }
+    
+          const originalTracker = await CommTrackers.findById(id);
+          if (!originalTracker) {
+            return res.status(404).json({ message: "Tracker not found" });
+          }
+    
+          const changes = {};
+          for (const key in updateFields) {
+            if (updateFields[key] !== originalTracker[key]) {
+              changes[key] = updateFields[key];
+            }
+          }
+    
+          if (fileId) {
+            updateFields.attachment = fileId;
+          }
+    
+          const updatedTracker = await CommTrackers.findByIdAndUpdate(
+            id,
+            {
+              ...updateFields,
+              recipient: parsedRecipient,
+              $push: {
+                auditTrail: {
+                  action: 'update',
+                  modifiedBy: user,
+                  changes,
+                },
+              },
+            },
+            { new: true, runValidators: true }
+          );
+    
+          res.status(200).json(updatedTracker);
+        } catch (error) {
+          logger.error('Error updating tracker', { error: error.message });
+          res.status(400).json({ message: 'Error updating tracker', error: error.message });
+        } */
     try {
       const { id } = req.params;
       const { recipient, ...updateFields } = req.body;
       const user = req.body?.username || 'Unknown';
-      const parsedRecipient = typeof recipient === "string" ? JSON.parse(recipient) : recipient;
 
-      // Initialize GridFS Bucket if a new file is provided
-      let fileId = null;
-      if (req.file) {
-        const fileBuffer = req.file.buffer;
-        const fileMimeType = req.file.mimetype;
+      console.log("Received update request for tracker ID:", id);
+      console.log("Incoming fields:", updateFields);
 
-        const bucket = new GridFSBucket(mongoose.connection.db, {
-          bucketName: 'attachments'
-        });
-
-        const uploadStream = bucket.openUploadStream(req.file.originalname, {
-          contentType: fileMimeType,
-          metadata: { user: user }
-        });
-
-        uploadStream.end(fileBuffer);
-        fileId = uploadStream.id; // Get the fileId from GridFS
+      // ✅ Ensure recipient is properly parsed (Fixes `recipient[0][receivingDepartment]` issue)
+      let parsedRecipient = [];
+      if (recipient) {
+        try {
+          if (typeof recipient === "string") {
+            parsedRecipient = JSON.parse(recipient);
+          } else if (Array.isArray(recipient)) {
+            parsedRecipient = recipient;
+          } else {
+            throw new Error("Invalid recipient format");
+          }
+        } catch (error) {
+          return res.status(400).json({ message: "Invalid recipient format", error: error.message });
+        }
       }
 
+      // ✅ Find existing tracker
       const originalTracker = await CommTrackers.findById(id);
       if (!originalTracker) {
         return res.status(404).json({ message: "Tracker not found" });
       }
 
+      // ✅ Compare changes for audit logging
       const changes = {};
-      for (const key in updateFields) {
+      Object.keys(updateFields).forEach((key) => {
         if (updateFields[key] !== originalTracker[key]) {
           changes[key] = updateFields[key];
         }
+      });
+
+      // ✅ Handle File Upload to GridFS (Only if a new file is provided)
+      let fileId = null;
+      if (req.file) {
+        try {
+          const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: "attachments" });
+          const uploadStream = bucket.openUploadStream(req.file.originalname, {
+            contentType: req.file.mimetype,
+            metadata: { user },
+          });
+
+          uploadStream.end(req.file.buffer);
+
+          await new Promise((resolve, reject) => {
+            uploadStream.on("finish", () => {
+              fileId = uploadStream.id;
+              console.log("File uploaded successfully, ID:", fileId);
+              resolve();
+            });
+            uploadStream.on("error", (err) => {
+              console.error("File upload error:", err);
+              reject(err);
+            });
+          });
+        } catch (error) {
+          console.error("File upload failed:", error);
+          return res.status(500).json({ message: "File upload failed", error: error.message });
+        }
       }
 
+      // ✅ Update file ID if a new file was uploaded
       if (fileId) {
         updateFields.attachment = fileId;
       }
 
+      // ✅ Filter allowed update fields (Prevents unintended updates)
+      const allowedFields = ["fromName", "documentTitle", "dateReceived", "attachment"];
+      const sanitizedUpdateFields = {};
+      Object.keys(updateFields).forEach((key) => {
+        if (allowedFields.includes(key)) {
+          sanitizedUpdateFields[key] = updateFields[key];
+        }
+      });
+
+      // ✅ Perform Update
       const updatedTracker = await CommTrackers.findByIdAndUpdate(
         id,
         {
-          ...updateFields,
+          ...sanitizedUpdateFields,
           recipient: parsedRecipient,
           $push: {
             auditTrail: {
-              action: 'update',
+              action: "update",
               modifiedBy: user,
               changes,
             },
@@ -176,10 +294,11 @@ const commTrackersController = {
         { new: true, runValidators: true }
       );
 
+      console.log("Tracker updated successfully:", updatedTracker._id);
       res.status(200).json(updatedTracker);
     } catch (error) {
-      logger.error('Error updating tracker', { error: error.message });
-      res.status(400).json({ message: 'Error updating tracker', error: error.message });
+      console.error("Error updating tracker:", error);
+      res.status(400).json({ message: "Error updating tracker", error: error.message });
     }
   },
   // Update a recipient array using tracker ID
