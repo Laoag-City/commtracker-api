@@ -183,9 +183,17 @@ const commTrackersController = {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 25;
       const skip = (page - 1) * limit;
-      const searchQuery = req.query.search
-        ? { documentTitle: { $regex: req.query.search, $options: 'i' } }
-        : {};
+      /*       const searchQuery = req.query.search
+              ? { documentTitle: { $regex: req.query.search, $options: 'i' } }
+              : {};
+       */
+      // Build the search query
+      const searchQuery = {
+        isArchived: { $ne: true }, // Exclude archived trackers
+        ...(req.query.search
+          ? { documentTitle: { $regex: req.query.search, $options: 'i' } }
+          : {}),
+      };
 
       const totalTrackers = await CommTrackers.countDocuments(searchQuery);
       const trackers = await CommTrackers.find(searchQuery)

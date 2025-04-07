@@ -8,6 +8,7 @@ const userRoutes = require('./routes/User');
 const departmentRoutes = require('./routes/Department');
 const groupRoutes = require('./routes/Group');
 const trackerRoutes = require('./routes/Tracker');
+const reportRoutes = require('./routes/Report'); // Import Report routes
 const config = require('./config');
 const logger = require('./utils/logger');
 
@@ -32,6 +33,7 @@ app.use('/users', userRoutes);
 app.use('/departments', departmentRoutes);
 app.use('/groups', groupRoutes);
 app.use('/trackers', trackerRoutes); // Tracker routes
+app.use('/reports', reportRoutes); // Report routes
 
 app.get('/', (req, res) => {
   res.send('Laoag City Communications Tracking ReST API Server. Docs at <a href="https://apps.laoagcity.gov.ph/apidocs/comm-tracker">API Docs</a>');
