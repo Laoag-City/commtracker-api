@@ -65,5 +65,11 @@ Additionally, ensure the following external resources are available:
    - Provide clearer instructions for setting up environment variables (e.g., .env file configuration).
    - Detail any additional setup required for production deployment.
 
+run node generateKey.js to have jwt key.
+set the following in .env
+NODE_ENV={development,production}
+MONGO_URI_PROD={connection string}
+MONGO_URI_DEV={connection string}
+PORT={PORTNUMBER}
 
 For further assistance, please contact the maintainers of this repository.
