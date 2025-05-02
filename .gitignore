@@ -5,3 +5,15 @@
 /node_modules
 /package-lock.json
 core.*
+
+# Build directories
+./yarn/*
+./yarn-error.log
+/.next
+/.nuxt
+/.out
+/.output
+/.vercel
+/.output/
+/.vercel_build_output
+/.output/public 
