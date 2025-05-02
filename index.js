@@ -50,7 +50,7 @@ mongoose.connect(config.mongoUri, {})
         logger.info(`Server is up and running on port ${config.port} with TLS`);
       });
     } else {
-      app.listen(config.port, () => {
+      app.listen(config.port, '0.0.0.0', () => {
         logger.info(`Server is up and running on port ${config.port}`);
       });
     }

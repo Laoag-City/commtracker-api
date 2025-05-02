@@ -1110,6 +1110,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"commtracker-api@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "commtracker-api@workspace:."
+  dependencies:
+    bcrypt: "npm:^5.1.1"
+    bcryptjs: "npm:^3.0.2"
+    body-parser: "npm:^2.2.0"
+    cors: "npm:^2.8.5"
+    dotenv: "npm:^16.5.0"
+    express: "npm:^5.1.0"
+    express-rate-limit: "npm:^7.5.0"
+    express-validator: "npm:^7.2.1"
+    gridfs-stream: "npm:^1.1.1"
+    helmet: "npm:^8.1.0"
+    https: "npm:^1.0.0"
+    jest-mongoose-mock: "npm:^1.2.0"
+    jsonwebtoken: "npm:^9.0.2"
+    mongodb: "npm:^6.16.0"
+    mongodb-memory-server: "npm:^10.1.4"
+    mongoose: "npm:^8.14.1"
+    multer: "npm:^1.4.5-lts.2"
+    nodemon: "npm:^3.1.10"
+    supertest: "npm:^7.1.0"
+    winston: "npm:^3.17.0"
+  languageName: unknown
+  linkType: soft
+
 "component-emitter@npm:^1.3.0":
   version: 1.3.1
   resolution: "component-emitter@npm:1.3.1"
@@ -5125,33 +5152,6 @@ __metadata:
   checksum: 10c0/c56bda7769e04907a88423feb320babaed0711af8c436ce3e56763ab1021ba107c7b0cafb11cde7529f669cfc22bffcaebffb573645cbd63842ea9fb17cd7728
   languageName: node
   linkType: hard
-
-"pnpcoop-api@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "pnpcoop-api@workspace:."
-  dependencies:
-    bcrypt: "npm:^5.1.1"
-    bcryptjs: "npm:^3.0.2"
-    body-parser: "npm:^2.2.0"
-    cors: "npm:^2.8.5"
-    dotenv: "npm:^16.5.0"
-    express: "npm:^5.1.0"
-    express-rate-limit: "npm:^7.5.0"
-    express-validator: "npm:^7.2.1"
-    gridfs-stream: "npm:^1.1.1"
-    helmet: "npm:^8.1.0"
-    https: "npm:^1.0.0"
-    jest-mongoose-mock: "npm:^1.2.0"
-    jsonwebtoken: "npm:^9.0.2"
-    mongodb: "npm:^6.16.0"
-    mongodb-memory-server: "npm:^10.1.4"
-    mongoose: "npm:^8.14.1"
-    multer: "npm:^1.4.5-lts.2"
-    nodemon: "npm:^3.1.10"
-    supertest: "npm:^7.1.0"
-    winston: "npm:^3.17.0"
-  languageName: unknown
-  linkType: soft
 
 "possible-typed-array-names@npm:^1.0.0":
   version: 1.0.0

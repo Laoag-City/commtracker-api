@@ -1,11 +1,16 @@
 # Use a minimal Node.js base image
 #FROM node:20.14.0-alpine docker pull node:22.12-alpine
-FROM node:22.11.0-alpine
+FROM node:22.15.0-slim
 
 WORKDIR /app
 
 COPY package.json yarn.lock ./
-RUN yarn
+#RUN yarn
+RUN corepack enable yarn
+# Install dependencies
+# Use --frozen-lockfile to ensure the exact versions in yarn.lock are installed
+RUN yarn install
+# Copy the rest of the application code
 COPY . .
 
 EXPOSE 3004
