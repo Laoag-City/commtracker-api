@@ -14,6 +14,7 @@ const logger = require('./utils/logger');
 
 const app = express();
 // Use Helmet to secure HTTP headers
+app.set('trust proxy', ['153.92.5.114', '58.69.52.182', '58.69.52.183', '58.69.52.190', '124.106.102.171', '::1', '::ffff:']);
 
 app.use(helmet(
   helmet({
