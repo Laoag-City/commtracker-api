@@ -13,9 +13,19 @@ const config = require('./config');
 const logger = require('./utils/logger');
 
 const app = express();
-// Use Helmet to secure HTTP headers
-app.set('trust proxy', ['153.92.5.114', '58.69.52.182', '58.69.52.183', '58.69.52.190', '124.106.102.171', '::1', '::ffff:']);
 
+// Trust specific proxy IPs
+app.set('trust proxy', [
+  '153.92.5.114',
+  '58.69.52.182',
+  '58.69.52.183',
+  '58.69.52.190',
+  '124.106.102.171',
+  '::1',
+]);
+
+/*
+// Use Helmet to secure HTTP headers
 app.use(helmet(
   helmet({
     contentSecurityPolicy: {
@@ -25,11 +35,29 @@ app.use(helmet(
       },
     },
   })
-));
+)); */
 
+// Secure HTTP headers with Helmet
+
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        frameAncestors: ["'self'", 'laoagcity.gov.ph', 'localhost'],
+      },
+    },
+    strictTransportSecurity: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+    },
+  })
+);
+
+// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
+// Routes
 app.use('/users', userRoutes);
 app.use('/departments', departmentRoutes);
 app.use('/groups', groupRoutes);
