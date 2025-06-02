@@ -198,6 +198,7 @@ const commTrackersController = {
       const totalTrackers = await CommTrackers.countDocuments(searchQuery);
       const trackers = await CommTrackers.find(searchQuery)
         .populate('recipient.receivingDepartment')
+        .sort({ dateReceived: -1 }) // Sort by dateReceived in descending order
         .skip(skip)
         .limit(limit);
 
