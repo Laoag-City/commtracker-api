@@ -102,80 +102,6 @@ const commTrackersController = {
       logger.error('Error creating Tracker document', { error: error.message });
       res.status(400).json({ message: 'Error creating tracker', error: error.message });
     }
-    /* no recipient saved
-    try {
-      console.log("Incoming request body:", req.body);
-      console.log("Incoming file:", req.file ? req.file.originalname : "No file uploaded");
-
-      const { fromName, documentTitle, dateReceived } = req.body;
-      if (!fromName || !documentTitle || !dateReceived) {
-        return res.status(400).json({ message: "Required fields are missing" });
-      }
-
-      const user = req.body?.username || "Unknown";
-
-      // ✅ Convert recipient fields into an array
-      const recipientArray = [];
-      Object.keys(req.body).forEach((key) => {
-        const match = key.match(/^recipient\[(\d+)\]\[(\w+)\]$/);
-        if (match) {
-          const index = parseInt(match[1], 10);
-          const field = match[2];
-
-          if (!recipientArray[index]) recipientArray[index] = {};
-          recipientArray[index][field] = req.body[key];
-        }
-      });
-
-      console.log("Parsed Recipients:", recipientArray);
-
-      // ✅ Process File Upload using GridFS
-      let fileId = null;
-      if (req.file) {
-        try {
-          const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: "attachments" });
-          const uploadStream = bucket.openUploadStream(req.file.originalname, {
-            contentType: req.file.mimetype,
-            metadata: { user, documentTitle, fromName },
-          });
-
-          uploadStream.end(req.file.buffer);
-
-          await new Promise((resolve, reject) => {
-            uploadStream.on("finish", () => {
-              fileId = uploadStream.id;
-              resolve();
-            });
-            uploadStream.on("error", (err) => reject(err));
-          });
-
-          console.log("File uploaded successfully, ID:", fileId);
-        } catch (error) {
-          console.error("Error uploading file:", error);
-          return res.status(500).json({ message: "File upload failed", error: error.message });
-        }
-      }
-
-      // ✅ Save Tracker Document
-      const tracker = new CommTrackers({
-        fromName,
-        documentTitle,
-        dateReceived,
-        recipient: recipientArray,
-        attachment: fileId,
-        attachmentMimeType: req.file ? req.file.mimetype : null,
-        auditTrail: [{ action: "create", modifiedBy: user, changes: { fromName, documentTitle, dateReceived } }],
-      });
-
-      const savedTracker = await tracker.save();
-      console.log("Tracker saved successfully:", savedTracker._id);
-
-      res.status(201).json(savedTracker);
-    } catch (error) {
-      console.error("Error creating tracker:", error);
-      res.status(500).json({ message: "Error creating tracker", error: error.message });
-    }
-      */
   },
   // Get all trackers with pagination and optional search
   getAllTrackers: async (req, res) => {
@@ -183,10 +109,7 @@ const commTrackersController = {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 25;
       const skip = (page - 1) * limit;
-      /*       const searchQuery = req.query.search
-              ? { documentTitle: { $regex: req.query.search, $options: 'i' } }
-              : {};
-       */
+
       // Build the search query
       const searchQuery = {
         isArchived: { $ne: true }, // Exclude archived trackers

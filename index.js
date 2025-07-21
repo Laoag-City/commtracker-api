@@ -24,20 +24,18 @@ app.set('trust proxy', [
   '::1',
 ]);
 
-/*
-// Use Helmet to secure HTTP headers
-app.use(helmet(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        // Allow framing from self and specific domain
-        frameAncestors: ["'self'", "laoagcity.gov.ph/", "localhost"],
-      },
-    },
-  })
-)); */
-
-// Secure HTTP headers with Helmet
+// CORS configuration
+const corsOptions = {
+  origin: [
+    'https://commtracker.laoagcity.gov.ph',
+    'https://laoagcity.gov.ph',
+    'http://localhost',
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+};
+app.use(cors(corsOptions));
 
 app.use(
   helmet({
@@ -54,7 +52,7 @@ app.use(
 );
 
 // Middleware
-app.use(cors());
+//app.use(cors());
 app.use(bodyParser.json());
 
 // Routes
