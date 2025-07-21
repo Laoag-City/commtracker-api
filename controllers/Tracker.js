@@ -314,6 +314,9 @@ const commTrackersController = {
         { $unwind: '$recipient' },
         { $match: recipientFilter }, // Apply filters
         {
+          $sort: { 'recipient.receiveDate': -1 } // Sort by receiveDate in descending order
+        },
+        {
           $lookup: {
             from: 'departments',
             localField: 'recipient.receivingDepartment',
@@ -370,95 +373,6 @@ const commTrackersController = {
       });
     }
   },
-
-  /*   filterReceivingDepartments: async (req, res) => {
-      try {
-        const { receivingDepartment, status, isSeen, dateSeenFrom, dateSeenTo } = req.query;
-  
-        // Log incoming query params for debugging
-        //console.log('Query Params:', req.query);
-        //console.log(receivingDepartment);
-        //console.log(status);
-        //console.log(isSeen);
-        //console.log(dateSeenFrom);
-        //console.log(dateSeenTo);
-        //console.log(req.query);
-  
-        // Build the filter criteria
-        const recipientFilter = {};
-        if (receivingDepartment) {
-          recipientFilter['recipient.receivingDepartment'] = new mongoose.Types.ObjectId(receivingDepartment);
-        }
-        if (status) {
-          recipientFilter['recipient.status'] = status;
-        }
-        if (isSeen !== undefined) {
-          recipientFilter['recipient.isSeen'] = isSeen === 'true';
-        }
-        if (dateSeenFrom || dateSeenTo) {
-          recipientFilter['recipient.dateSeen'] = {};
-          if (dateSeenFrom) recipientFilter['recipient.dateSeen'].$gte = new Date(dateSeenFrom);
-          if (dateSeenTo) recipientFilter['recipient.dateSeen'].$lte = new Date(dateSeenTo);
-        }
-  
-        console.log('Constructed Filter:', recipientFilter);
-  
-        // Use aggregation pipeline to filter nested recipient array
-        // TODO: add the attachment object as well
-        const results = await CommTrackers.aggregate([
-          { $unwind: '$recipient' },
-          { $match: recipientFilter }, // Apply filter
-          // {
-          //   $project: {
-          //     fromName: 1,
-          //     documentTitle: 1,
-          //     recipient: 1,
-          //   },
-          //},
-          {
-            $lookup: {
-              from: 'departments', // Collection name in MongoDB
-              localField: 'recipient.receivingDepartment',
-              foreignField: '_id',
-              as: 'departmentDetails'
-            }
-          },
-          { $unwind: { path: '$departmentDetails', preserveNullAndEmptyArrays: true } }, // Unwind to get a single object
-          {
-            $group: {
-              _id: '$_id',
-              fromName: { $first: '$fromName' },
-              documentTitle: { $first: '$documentTitle' },
-              attachment: { $first: '$attachment' },
-              attachmentMimeType: { $first: '$attachmentMimeType' },
-              recipients: {
-                $push: {
-                  recipientId: '$recipient._id',
-                  receivingDepartment: '$recipient.receivingDepartment',
-                  receiveDate: '$recipient.receiveDate',
-                  isSeen: '$recipient.isSeen',
-                  dateSeen: '$recipient.dateSeen',
-                  remarks: '$recipient.remarks',
-                  status: '$recipient.status',
-                  departmentDetails: '$departmentDetails' // Embedded department info
-                }
-              }
-            }
-          }
-        ]);
-  
-        res.status(200).json({
-          success: true,
-          data: results,
-        });
-      } catch (error) {
-        console.error('Error filtering receiving departments:', error);
-        res.status(500).json({
-          success: false,
-          message: 'Internal server error',
-        });
-      }
-    }, */
 
   // Get audit trail logs for a tracker
   getAuditTrail: async (req, res) => {

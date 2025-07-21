@@ -28,8 +28,8 @@ app.set('trust proxy', [
 const corsOptions = {
   origin: [
     'https://commtracker.laoagcity.gov.ph',
-    'https://laoagcity.gov.ph',
-    'http://localhost',
+    'https://apps.laoagcity.gov.ph',
+    'http://localhost:5173',
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -52,7 +52,6 @@ app.use(
 );
 
 // Middleware
-//app.use(cors());
 app.use(bodyParser.json());
 
 // Routes
