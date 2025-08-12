@@ -9,54 +9,6 @@ const gridfsStream = require('gridfs-stream');
 
 const commTrackersController = {
 
-  // Create a new tracker (works in insomnia)
-  /*   createTracker: async (req, res) => {
-      try {
-        const { fromName, documentTitle, dateReceived, recipient } = req.body;
-        if (!fromName || !documentTitle || !dateReceived) {
-          return res.status(400).json({ message: 'Required fields are missing' });
-        }
-        const user = req.body?.username || 'Unknown';
-  
-        let parsedRecipient;
-        try {
-          parsedRecipient = typeof recipient === "string" ? JSON.parse(recipient) : recipient;
-        } catch (error) {
-          return res.status(400).json({ message: 'Invalid recipient format' });
-        }
-  
-        let fileId = null;
-        if (req.file) {
-          const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'attachments' });
-          const uploadStream = bucket.openUploadStream(req.file.originalname, {
-            contentType: req.file.mimetype,
-            metadata: { user, documentTitle, fromName },
-          });
-  
-          uploadStream.end(req.file.buffer);
-  
-          await new Promise((resolve, reject) => {
-            uploadStream.on('finish', () => resolve());
-            uploadStream.on('error', (err) => reject(err)); // Handle errors during upload
-          });
-  
-          fileId = uploadStream.id;
-        }
-  
-        const tracker = new CommTrackers({
-          fromName, documentTitle, dateReceived, recipient: parsedRecipient, attachment: fileId,
-          attachmentMimeType: req.file ? req.file.mimetype : null,
-          auditTrail: [{ action: 'create', modifiedBy: user, changes: { fromName, documentTitle, dateReceived } }],
-        });
-        const savedTracker = await tracker.save();
-        res.status(201).json(savedTracker);
-        logger.info('Tracker document created successfully', { trackerId: tracker._id });
-      } catch (error) {
-        logger.error('Error creating Tracker document', { error: error.message });
-        res.status(400).json({ message: 'Error creating tracker', error: error.message });
-      }
-    },
-   */
   createTracker: async (req, res) => {
     try {
       const { fromName, documentTitle, dateReceived, recipient } = req.body;
@@ -459,51 +411,6 @@ const commTrackersController = {
       res.status(500).json({ message: "Error fetching attachment", error: error.message });
     }
   },
-  /*   // Serve an attachment
-    getAttachment: async (req, res) => {
-      try {
-        const { id } = req.params;
-  
-        // Fetch tracker to get attachment ID
-        const tracker = await CommTrackers.findById(id);
-        if (!tracker || !tracker.attachment) {
-          return res.status(404).json({ message: 'Attachment not found' });
-        }
-  
-        const bucket = new GridFSBucket(mongoose.connection.db, { bucketName: 'attachments' });
-  
-        // Fetch file metadata
-        const file = await bucket.find({ _id: tracker.attachment }).toArray();
-        if (!file || file.length === 0) {
-          return res.status(404).json({ message: 'Attachment metadata not found' });
-        }
-  
-        const fileName = file[0].filename || 'attachment';
-        const mimeType = tracker.attachmentMimeType || 'application/octet-stream';
-        const disposition = req.query.inline === 'true' ? 'inline' : `attachment; filename="${fileName}"`;
-        // Set headers for file download
-        res.set('Content-Type', mimeType);
-        //forces download instead of inline display
-        //res.set('Content-Disposition', `attachment; filename="${fileName}"`);
-        //res.set('Content-Disposition', disposition);
-        //console.log(disposition);
-        const isViewable = ['application/pdf', 'image/png', 'image/jpeg'].includes(mimeType);
-        res.set('Content-Disposition', isViewable ? 'inline' : `attachment; filename="DTS-${fileName}"`);
-        //console.log(isViewable)
-  
-        // Stream file to client
-        const downloadStream = bucket.openDownloadStream(tracker.attachment);
-        downloadStream.on('error', () => {
-          res.status(404).json({ message: 'Error streaming attachment' });
-        });
-        //console.log(isViewable)
-        downloadStream.pipe(res);
-      } catch (error) {
-        //console.log(isViewable)
-        logger.error('Error fetching attachment', { error: error.message });
-        res.status(500).json({ message: 'Error fetching attachment', error: error.message });
-      }
-    } ,*/
   // Serve an attachment with Auth
   getAttachmentWithAuth: async (req, res) => {
     try {
@@ -549,49 +456,6 @@ const commTrackersController = {
       console.error("Error serving attachment:", error);
       res.status(500).json({ message: "Error serving attachment", error: error.message });
     }
-    /*     try {
-          const { id } = req.params;
-    
-          // Find the tracker by ID
-          const tracker = await CommTrackers.findById(id);
-          if (!tracker || !tracker.attachment) {
-            return res.status(404).json({ message: "Attachment not found" });
-          }
-    
-          // Initialize GridFS Bucket to fetch file
-          const bucket = new GridFSBucket(mongoose.connection.db, {
-            bucketName: 'attachments'
-          });
-    
-          const downloadStream = bucket.openDownloadStream(tracker.attachment);
-          downloadStream.on('error', (error) => {
-            return res.status(404).json({ message: 'Error fetching attachment', error: error.message });
-          });
-    
-          // Extract dateReceived and mimetype for filename
-          const dateReceived = new Date(tracker.dateReceived).toISOString().split("T")[0]; // Format as YYYY-MM-DD
-          const mimeTypeToExtension = {
-            "application/pdf": "pdf",
-            "image/jpeg": "jpg",
-            "image/png": "png",
-          };
-          const extension = mimeTypeToExtension[tracker.attachmentMimeType] || "txt"; // Default to 'txt' if mimetype is unknown
-          const filename = `dts-${dateReceived}.${extension}`;
-    
-          // Set appropriate headers
-          //res.set("Content-Type", tracker.attachmentMimeType);
-          //res.set("Content-Disposition", `attachment; filename="${filename}"`);
-          const file = await bucket.find({ _id: tracker.attachment }).toArray();
-          const fileName = file[0]?.filename || 'attachment';
-          // Stream the attachment
-          res.set('Content-Disposition', `attachment; filename=${fileName}`);
-          downloadStream.pipe(res);
-          // res.send(tracker.attachment);
-        } catch (error) {
-          console.error("Error serving attachment:", error);
-          res.status(500).json({ message: "Error serving attachment" });
-        }
-        //console.log(res);*/
 
   },
   // Unauthenticated route to get tracker status
