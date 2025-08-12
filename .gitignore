@@ -18,3 +18,17 @@ core.*
 /.vercel_build_output
 /.output/public 
 .yarn/install-state.gz
+frontend/.yarn/install-state.gz
+frontend/node_modules
+frontend/package-lock.json
+frontend/combined.log
+frontend/error.log
+frontend/exceptions.log
+frontend/.next
+frontend/.nuxt
+frontend/.out
+frontend/.output
+frontend/.vercel
+frontend/.output/
+frontend/.vercel_build_output
+frontend/dist
