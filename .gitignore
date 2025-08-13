@@ -32,3 +32,4 @@ frontend/.vercel
 frontend/.output/
 frontend/.vercel_build_output
 frontend/dist
+frontend/.env

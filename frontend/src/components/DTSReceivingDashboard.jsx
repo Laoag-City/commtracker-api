@@ -476,43 +476,57 @@ function DTSReceivingDashboard() {
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Recipients</Form.Label>
-              <Form.Control
-                as="select"
-                multiple
-                required
-                onBlur={() => {
-                  if (!currentTracker.recipient.length) setError("At least one recipient must be selected.");
-                }}
-                onChange={(e) => {
-                  const selectedGroupIds = Array.from(e.target.selectedOptions, (option) => option.value);
-                  const selectedRoles = selectedGroupIds
-                    .map((groupId) => groups.find((group) => group._id === groupId))
-                    .flatMap((group) =>
-                      group?.departmentIds.map((dept) => ({
-                        receivingDepartment: dept._id,
-                        receiveDate: new Date(),
-                        remarks: "",
-                        status: "pending",
-                      })) || []
-                    );
-                  const uniqueRecipients = Array.from(new Map(selectedRoles.map((r) => [r.receivingDepartment, r])).values());
-                  if (uniqueRecipients.length === 0) {
-                    setError("At least one recipient must be selected.");
-                  } else {
-                    setError(null);
-                  }
-                  setCurrentTracker({
-                    ...currentTracker,
-                    recipient: uniqueRecipients,
-                  });
-                }}
-              >
+              <div style={{ maxHeight: "200px", overflowY: "auto", border: "1px solid #ced4da", padding: "10px", borderRadius: "4px" }}>
                 {groups.map((group) => (
-                  <option key={group._id} value={group._id}>
-                    {group.groupName}
-                  </option>
+                  <Form.Check
+                    key={group._id}
+                    type="checkbox"
+                    id={`group-${group._id}`}
+                    label={group.groupName}
+                    value={group._id}
+                    checked={currentTracker.recipient.some((rec) =>
+                      group.departmentIds.some((dept) => dept._id === rec.receivingDepartment)
+                    )}
+                    onChange={(e) => {
+                      const groupId = e.target.value;
+                      const selectedGroup = groups.find((g) => g._id === groupId);
+                      let updatedRecipients = [...currentTracker.recipient];
+
+                      if (e.target.checked) {
+                        // Add departments from the selected group
+                        const newRecipients = selectedGroup.departmentIds.map((dept) => ({
+                          receivingDepartment: dept._id,
+                          receiveDate: new Date(),
+                          remarks: "",
+                          status: "pending",
+                        }));
+                        updatedRecipients = [...updatedRecipients, ...newRecipients];
+                      } else {
+                        // Remove departments from the unselected group
+                        updatedRecipients = updatedRecipients.filter(
+                          (rec) => !selectedGroup.departmentIds.some((dept) => dept._id === rec.receivingDepartment)
+                        );
+                      }
+
+                      // Remove duplicates by department ID
+                      const uniqueRecipients = Array.from(
+                        new Map(updatedRecipients.map((r) => [r.receivingDepartment, r])).values()
+                      );
+
+                      if (uniqueRecipients.length === 0) {
+                        setError("At least one recipient must be selected.");
+                      } else {
+                        setError(null);
+                      }
+
+                      setCurrentTracker({
+                        ...currentTracker,
+                        recipient: uniqueRecipients,
+                      });
+                    }}
+                  />
                 ))}
-              </Form.Control>
+              </div>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Attachment (PDF or Image, max 50MB)</Form.Label>

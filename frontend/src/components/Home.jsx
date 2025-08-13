@@ -18,7 +18,7 @@ function Home() {
       navigate('/dtsmonitor');
     } else if (userRole === 'management') {
       navigate('/dtsmanagement');
-    } else if (userRole === 'department') {
+    } else if (userRole === 'superadmin') {
       navigate('/departments');
     } else if (userRole === 'group') {
       navigate('/groups');
