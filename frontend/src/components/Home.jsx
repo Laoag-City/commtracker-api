@@ -1,12 +1,20 @@
-import { useEffect } from 'react';
-import { Container, ButtonGroup, Button, ListGroup } from 'react-bootstrap';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Form, Container, ButtonGroup, Button, InputGroup } from 'react-bootstrap';
+import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { isLoggedIn, logout, getUserRole, getLoginName } from '../utils/authUtils';
 
 
 function Home() {
   const navigate = useNavigate();
+  const { mongoid } = useParams(); // Extract mongoid from URL path (e.g., /status/:mongoid)
+  const [trackingId, setTrackingId] = useState('');
+
   useEffect(() => {
+    // If mongoid is provided in the URL, redirect to status page with mongoid
+    if (mongoid) {
+      navigate(`/status/${mongoid}`);
+      return; // Prevent further redirects
+    }
     // Example: get user role from localStorage or context
     //const userRole = localStorage.getItem('role');
     const userRole = getUserRole();
@@ -26,12 +34,49 @@ function Home() {
       navigate('/users');
     } else if (userRole === null || userRole === undefined) {
       navigate('/status');
+      return;
     }
     // Add more roles as needed
   });
 
+  // Handle tracking ID form submission
+  const handleTrackSubmit = (e) => {
+    e.preventDefault();
+    if (trackingId.trim()) {
+      navigate(`/status/${trackingId}`);
+    }
+  };
+
   return (
     <Container className="py-3 text-center">
+      <h3>Welcome to Laoag City&apos;s Internal Communication Tracking System</h3>
+      <p>Track a document or log in to access your dashboard.</p>
+
+      {/* Form for entering tracking ID */}
+      <Form onSubmit={handleTrackSubmit} className="mb-3">
+        <InputGroup className="mx-auto" style={{ maxWidth: '400px' }}>
+          <Form.Control
+            type="text"
+            value={trackingId}
+            onChange={(e) => setTrackingId(e.target.value)}
+            placeholder="Enter Tracking ID"
+          />
+          <Button type="submit" variant="primary">
+            Track Document
+          </Button>
+        </InputGroup>
+      </Form>
+
+      <ButtonGroup vertical>
+        <Button as={NavLink} to="/status" variant="primary" className="mb-2">
+          Check Status
+        </Button>
+        {!isLoggedIn() && (
+          <Button as={NavLink} to="/login" variant="secondary" className="mb-2">
+            Login
+          </Button>
+        )}
+      </ButtonGroup>
       {/*
       <p>Welcome to Laoag City&apos;s Internal Communication Tracking System </p>
       <ListGroup>

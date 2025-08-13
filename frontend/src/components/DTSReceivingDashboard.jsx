@@ -602,7 +602,7 @@ function DTSReceivingDashboard() {
             >
               {import.meta.env.MODE === 'production' ? (
                 <QRCodeSVG
-                  value={`${VITE_URL}/status/${qrTracker._id}`}
+                  value={`https://commtracker.laoagcity.gov.ph/status/${qrTracker._id}`}
                   size={128}
                   bgColor="#ffffff"
                   fgColor="#000000"
@@ -619,7 +619,7 @@ function DTSReceivingDashboard() {
                 />
               ) : (
                 <QRCodeSVG
-                  value={`${VITE_URL}/status/${qrTracker._id}`}
+                  value={`https://commtracker.laoagcity.gov.ph/status/${qrTracker._id}`}
                   size={128}
                   bgColor="#ffffff"
                   fgColor="#000000"

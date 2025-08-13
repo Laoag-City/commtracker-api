@@ -18,6 +18,12 @@ function UserManagement() {
   const [totalPages, setTotalPages] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const API_URL = import.meta.env.MODE === "production"
+    ? import.meta.env.VITE_API_URL_PROD
+    : import.meta.env.VITE_API_URL_DEV;
+
+  //  const VITE_URL = import.meta.env.VITE_URL_DEV || import.meta.env.VITE_URL_PROD || API_URL; // Added fallback
+
   useEffect(() => {
     fetchUsers();
   }, [currentPage, searchQuery]);
@@ -32,7 +38,7 @@ function UserManagement() {
     setError('');
     try {
       const data = await fetchData(
-        `${import.meta.env.VITE_API_URL}/users?page=${currentPage}&limit=${usersPerPage}&search=${searchQuery}`,
+        `${API_URL}/users?page=${currentPage}&limit=${usersPerPage}&search=${searchQuery}`,
         token
       );
       setUsers(data.users || []);
@@ -49,7 +55,7 @@ function UserManagement() {
     const token = localStorage.getItem('token');
     setLoading(true);
     try {
-      const data = await fetchData(`${import.meta.env.VITE_API_URL}/departments`, token);
+      const data = await fetchData(`${API_URL}/departments`, token);
       setDepartments(data);
     } catch (error) {
       setError('Error fetching departments. Please try again.', error);
@@ -65,7 +71,7 @@ function UserManagement() {
     setLoading(true);
     try {
       await axios.post(
-        `${import.meta.env.VITE_API_URL}/users/register`,
+        `${API_URL}/users/register`,
         { username, password, userrole, deptId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -85,7 +91,7 @@ function UserManagement() {
     setLoading(true);
     try {
       await axios.put(
-        `${import.meta.env.VITE_API_URL}/users/${editingUserId}`,
+        `${API_URL}/users/${editingUserId}`,
         { username, password, userrole, deptId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -103,7 +109,7 @@ function UserManagement() {
     setError('');
     setLoading(true);
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/users/${id}`, {
+      await axios.delete(`${API_URL}/users/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchUsers();

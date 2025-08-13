@@ -30,16 +30,21 @@ function GroupManagement() {
   const [departmentSearch, setDepartmentSearch] = useState(''); // Department search input state
 
   const token = localStorage.getItem('token');
+  const API_URL = import.meta.env.MODE === "production"
+    ? import.meta.env.VITE_API_URL_PROD
+    : import.meta.env.VITE_API_URL_DEV;
+
+  //  const VITE_URL = import.meta.env.VITE_URL_DEV || import.meta.env.VITE_URL_PROD || API_URL; // Added fallback
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        const groupsData = await fetchData(`${import.meta.env.VITE_API_URL}/groups`, token);
+        const groupsData = await fetchData(`${API_URL}/groups`, token);
         setGroups(groupsData);
         setFilteredGroups(groupsData);
         const departmentsData = await fetchData(
-          `${import.meta.env.VITE_API_URL}/departments`,
+          `${API_URL}/departments`,
           token
         );
         setDepartments(departmentsData);
@@ -91,8 +96,8 @@ function GroupManagement() {
     setSuccess(null);
 
     const url = editMode
-      ? `${import.meta.env.VITE_API_URL}/groups/${editingGroupId}`
-      : `${import.meta.env.VITE_API_URL}/groups/new`;
+      ? `${API_URL}/groups/${editingGroupId}`
+      : `${API_URL}/groups/new`;
 
     try {
       const method = editMode ? 'put' : 'post';
@@ -102,7 +107,7 @@ function GroupManagement() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSuccess(editMode ? 'Group updated successfully!' : 'Group added successfully!');
-      const updatedGroups = await fetchData(`${import.meta.env.VITE_API_URL}/groups`, token);
+      const updatedGroups = await fetchData(`${API_URL}/groups`, token);
       setGroups(updatedGroups);
       setFilteredGroups(updatedGroups);
       resetForm();
@@ -118,11 +123,11 @@ function GroupManagement() {
     setLoading(true);
     setError(null);
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/groups/${groupId}`, {
+      await axios.delete(`${API_URL}/groups/${groupId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSuccess('Group deleted successfully!');
-      const updatedGroups = await fetchData(`${import.meta.env.VITE_API_URL}/groups`, token);
+      const updatedGroups = await fetchData(`${API_URL}/groups`, token);
       setGroups(updatedGroups);
       setFilteredGroups(updatedGroups);
     } catch (error) {

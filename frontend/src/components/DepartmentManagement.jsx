@@ -11,6 +11,11 @@ import {
   InputGroup,
   Card,
 } from 'react-bootstrap';
+const API_URL = import.meta.env.MODE === "production"
+  ? import.meta.env.VITE_API_URL_PROD
+  : import.meta.env.VITE_API_URL_DEV;
+
+const VITE_URL = import.meta.env.VITE_URL_DEV || import.meta.env.VITE_URL_PROD || API_URL; // Added fallback
 
 function DepartmentManagement() {
   const [departments, setDepartments] = useState([]);
@@ -30,7 +35,7 @@ function DepartmentManagement() {
   const fetchDepartments = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/departments`, {
+      const response = await axios.get(`${API_URL}/departments`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setDepartments(response.data);
@@ -58,14 +63,14 @@ function DepartmentManagement() {
       if (editingDeptId) {
         // Update existing department
         await axios.put(
-          `${import.meta.env.VITE_API_URL}/departments/${editingDeptId}`,
+          `${API_URL}/departments/${editingDeptId}`,
           { deptCode, deptName },
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
         // Add new department
         await axios.post(
-          `${import.meta.env.VITE_API_URL}/departments/new`,
+          `${API_URL}/departments/new`,
           { deptCode, deptName },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -87,7 +92,7 @@ function DepartmentManagement() {
   const handleDelete = async () => {
     const token = localStorage.getItem('token');
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/departments/${deleteTarget._id}`, {
+      await axios.delete(`${API_URL}/departments/${deleteTarget._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchDepartments(); // Refresh the department list
@@ -148,7 +153,7 @@ function DepartmentManagement() {
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody>{/*console.log(departments)*/}
                 {departments.map((department) => (
                   <tr key={department._id}>
                     <td>{department.deptCode}</td>

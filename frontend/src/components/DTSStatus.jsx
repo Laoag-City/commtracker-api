@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Container, Form, Button, Alert, Spinner, Table } from "react-bootstrap";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate, } from "react-router-dom";
 
 function DTSStatus() {
   const [trackerIdForm, setTrackerIdForm] = useState("");
@@ -9,7 +9,7 @@ function DTSStatus() {
   const [error, setError] = useState("");
   const [trackerData, setTrackerData] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  const navigate = useNavigate();
   // Validate MongoDB ObjectId
   const isValidObjectId = (id) => /^[a-f\d]{24}$/i.test(id);
 
@@ -22,7 +22,7 @@ function DTSStatus() {
       // Make API call to fetch status if the trackerId is valid
       if (isValidObjectId(id)) {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/trackers/status/${id}`
+          `${import.meta.env.VITE_API_URL_PROD}/trackers/status/${id}`
         );
         setTrackerData(response.data);
       } else {
@@ -48,8 +48,9 @@ function DTSStatus() {
   useEffect(() => {
     if (trackerId) {
       fetchStatus(trackerId); // Fetch status when trackerId is available in the URL
+      //navigate(`/status/${trackerId}`); // Redirect to status page with trackerId
     }
-  });
+  }, [trackerId]);
 
   return (
     <Container className="py-3 text-center">
