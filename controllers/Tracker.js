@@ -465,7 +465,7 @@ const commTrackersController = {
       console.log(id);
       // Populate recipient array
       const tracker = await CommTrackers.findById(id)
-        .select('status dateReceived documentTitle isArchived recipient') // Specify the fields to return
+        .select('status serialNumber dateReceived documentTitle isArchived recipient ') // Specify the fields to return
         .populate({
           path: 'recipient.receivingDepartment',
           select: 'deptName', // Fields to return within recipient subdocument
