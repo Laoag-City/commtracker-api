@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Container, Card, Table, Button, Form, Spinner, Modal, Alert, Row, Col, Pagination, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Container, Image, Card, Table, Button, Form, Spinner, Modal, Alert, Row, Col, Pagination, OverlayTrigger, Tooltip } from "react-bootstrap";
 import axios from "axios";
 import { pdfjs, Document, Page } from "react-pdf";
 //import RenderPdfFirstPage from "./RenderPDFFirstPage";
@@ -196,6 +196,7 @@ const DTSRecipientDashboard = () => {
         <Col md={12} className="p-3">
           <Card className="mb-3">
             <Card.Body>
+              {/*<Card.Title>Welcome {deptName}<Image src={`/logossml/${deptName}.png`} xs={6} className="" roundedCircle /></Card.Title>*/}
               <Card.Title>Welcome {deptName}</Card.Title>
               <Card.Text>
                 {/* Total Communications: {documents.length} | Current Page: {currentPage} | Total Pages: {totalPages}*/}
