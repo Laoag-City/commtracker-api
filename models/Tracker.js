@@ -27,7 +27,7 @@ const recipientSchema = new mongoose.Schema({
 
 // Tracker schema
 const trackerSchema = new mongoose.Schema({
-  serialNumber: { type: String, required: true, unique: true },
+  serialNumber: { type: String, unique: true },
   fromName: { type: String, required: true },
   documentTitle: { type: String, required: true },
   dateReceived: { type: Date },
