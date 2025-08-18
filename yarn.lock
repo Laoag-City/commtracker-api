@@ -222,17 +222,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bcrypt@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "bcrypt@npm:6.0.0"
-  dependencies:
-    node-addon-api: "npm:^8.3.0"
-    node-gyp: "npm:latest"
-    node-gyp-build: "npm:^4.8.4"
-  checksum: 10c0/006e69d4b3f0f021051fa9d998a768721a51dde28e7848e3e775ab608ba3476b25fa9262a7082ececbb0d493b0b6ca83673a6f3810b114fe90ec1bc6ae4b35b2
-  languageName: node
-  linkType: hard
-
 "bcryptjs@npm:^3.0.2":
   version: 3.0.2
   resolution: "bcryptjs@npm:3.0.2"
@@ -397,13 +386,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clsx@npm:^2.1.1":
-  version: 2.1.1
-  resolution: "clsx@npm:2.1.1"
-  checksum: 10c0/c4c8eb865f8c82baab07e71bfa8897c73454881c4f99d6bc81585aecd7c441746c1399d08363dc096c550cceaf97bd4ce1e8854e1771e9998d9f94c4fe075839
-  languageName: node
-  linkType: hard
-
 "color-convert@npm:^1.9.3":
   version: 1.9.3
   resolution: "color-convert@npm:1.9.3"
@@ -479,7 +461,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "commtracker-api@workspace:."
   dependencies:
-    bcrypt: "npm:^6.0.0"
     bcryptjs: "npm:^3.0.2"
     body-parser: "npm:^2.2.0"
     cors: "npm:^2.8.5"
@@ -492,10 +473,9 @@ __metadata:
     https: "npm:^1.0.0"
     jsonwebtoken: "npm:^9.0.2"
     mongodb: "npm:^6.18.0"
-    mongoose: "npm:^8.16.5"
+    mongoose: "npm:^8.17.1"
     multer: "npm:^2.0.2"
     nodemon: "npm:^3.1.10"
-    react-draggable: "npm:^4.5.0"
     supertest: "npm:^7.1.4"
     winston: "npm:^3.17.0"
   languageName: unknown
@@ -1286,13 +1266,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-tokens@npm:^3.0.0 || ^4.0.0":
-  version: 4.0.0
-  resolution: "js-tokens@npm:4.0.0"
-  checksum: 10c0/e248708d377aa058eacf2037b07ded847790e6de892bbad3dac0abba2e759cb9f121b00099a65195616badcb6eca8d14d975cb3e89eb1cfda644756402c8aeed
-  languageName: node
-  linkType: hard
-
 "jsbn@npm:1.1.0":
   version: 1.1.0
   resolution: "jsbn@npm:1.1.0"
@@ -1420,17 +1393,6 @@ __metadata:
     safe-stable-stringify: "npm:^2.3.1"
     triple-beam: "npm:^1.3.0"
   checksum: 10c0/4789b4b37413c731d1835734cb799240d31b865afde6b7b3e06051d6a4127bfda9e88c99cfbf296d084a315ccbed2647796e6a56b66e725bcb268c586f57558f
-  languageName: node
-  linkType: hard
-
-"loose-envify@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "loose-envify@npm:1.4.0"
-  dependencies:
-    js-tokens: "npm:^3.0.0 || ^4.0.0"
-  bin:
-    loose-envify: cli.js
-  checksum: 10c0/655d110220983c1a4b9c0c679a2e8016d4b67f6e9c7b5435ff5979ecdb20d0813f4dec0a08674fcbdd4846a3f07edbb50a36811fd37930b94aaa0d9daceb017e
   languageName: node
   linkType: hard
 
@@ -1674,7 +1636,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mongodb@npm:^6.18.0":
+"mongodb@npm:^6.18.0, mongodb@npm:~6.18.0":
   version: 6.18.0
   resolution: "mongodb@npm:6.18.0"
   dependencies:
@@ -1708,52 +1670,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mongodb@npm:~6.17.0":
-  version: 6.17.0
-  resolution: "mongodb@npm:6.17.0"
-  dependencies:
-    "@mongodb-js/saslprep": "npm:^1.1.9"
-    bson: "npm:^6.10.4"
-    mongodb-connection-string-url: "npm:^3.0.0"
-  peerDependencies:
-    "@aws-sdk/credential-providers": ^3.188.0
-    "@mongodb-js/zstd": ^1.1.0 || ^2.0.0
-    gcp-metadata: ^5.2.0
-    kerberos: ^2.0.1
-    mongodb-client-encryption: ">=6.0.0 <7"
-    snappy: ^7.2.2
-    socks: ^2.7.1
-  peerDependenciesMeta:
-    "@aws-sdk/credential-providers":
-      optional: true
-    "@mongodb-js/zstd":
-      optional: true
-    gcp-metadata:
-      optional: true
-    kerberos:
-      optional: true
-    mongodb-client-encryption:
-      optional: true
-    snappy:
-      optional: true
-    socks:
-      optional: true
-  checksum: 10c0/97630cbb12a7615230f4846220acd68b82d8ae5e12eb83beb239a48c88604766a7cf2b114a20e774ada7be35175c02e23d66b05f3d180c667620a1ba8b1a52b5
-  languageName: node
-  linkType: hard
-
-"mongoose@npm:^8.16.5":
-  version: 8.16.5
-  resolution: "mongoose@npm:8.16.5"
+"mongoose@npm:^8.17.1":
+  version: 8.17.1
+  resolution: "mongoose@npm:8.17.1"
   dependencies:
     bson: "npm:^6.10.4"
     kareem: "npm:2.6.3"
-    mongodb: "npm:~6.17.0"
+    mongodb: "npm:~6.18.0"
     mpath: "npm:0.9.0"
     mquery: "npm:5.0.0"
     ms: "npm:2.1.3"
     sift: "npm:17.1.3"
-  checksum: 10c0/bc0c30768a35a2dfae45ba12a47f9d93b0b0b9b56179737abe05b6d1f7b546c290c22a78ced795dafa6e6eb5ccb4065c18da8847b80c01ee8e3c7d700c377158
+  checksum: 10c0/5e7d9fc9a577618894f8407bcd7f373eeb61d03e42a112f88272a3a1a79b84a7af5131350337da8cd11b9aafd02ebefbafa98d3cf81256b218120a45b8765ffa
   languageName: node
   linkType: hard
 
@@ -1799,26 +1727,6 @@ __metadata:
   version: 1.0.0
   resolution: "negotiator@npm:1.0.0"
   checksum: 10c0/4c559dd52669ea48e1914f9d634227c561221dd54734070791f999c52ed0ff36e437b2e07d5c1f6e32909fc625fe46491c16e4a8f0572567d4dd15c3a4fda04b
-  languageName: node
-  linkType: hard
-
-"node-addon-api@npm:^8.3.0":
-  version: 8.5.0
-  resolution: "node-addon-api@npm:8.5.0"
-  dependencies:
-    node-gyp: "npm:latest"
-  checksum: 10c0/e4de0b4e70998fed7ef41933946f60565fc3a17cb83b7d626a0c0bb1f734cf7852e0e596f12681e7c8ed424163ee3cdbb4f0abaa9cc269d03f48834c263ba162
-  languageName: node
-  linkType: hard
-
-"node-gyp-build@npm:^4.8.4":
-  version: 4.8.4
-  resolution: "node-gyp-build@npm:4.8.4"
-  bin:
-    node-gyp-build: bin.js
-    node-gyp-build-optional: optional.js
-    node-gyp-build-test: build-test.js
-  checksum: 10c0/444e189907ece2081fe60e75368784f7782cfddb554b60123743dfb89509df89f1f29c03bbfa16b3a3e0be3f48799a4783f487da6203245fa5bed239ba7407e1
   languageName: node
   linkType: hard
 
@@ -1997,17 +1905,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:^15.8.1":
-  version: 15.8.1
-  resolution: "prop-types@npm:15.8.1"
-  dependencies:
-    loose-envify: "npm:^1.4.0"
-    object-assign: "npm:^4.1.1"
-    react-is: "npm:^16.13.1"
-  checksum: 10c0/59ece7ca2fb9838031d73a48d4becb9a7cc1ed10e610517c7d8f19a1e02fa47f7c27d557d8a5702bec3cfeccddc853579832b43f449e54635803f277b1c78077
-  languageName: node
-  linkType: hard
-
 "proxy-addr@npm:^2.0.7":
   version: 2.0.7
   resolution: "proxy-addr@npm:2.0.7"
@@ -2057,26 +1954,6 @@ __metadata:
     iconv-lite: "npm:0.6.3"
     unpipe: "npm:1.0.0"
   checksum: 10c0/f8daf4b724064a4811d118745a781ca0fb4676298b8adadfd6591155549cfea0a067523cf7dd3baeb1265fecc9ce5dfb2fc788c12c66b85202a336593ece0f87
-  languageName: node
-  linkType: hard
-
-"react-draggable@npm:^4.5.0":
-  version: 4.5.0
-  resolution: "react-draggable@npm:4.5.0"
-  dependencies:
-    clsx: "npm:^2.1.1"
-    prop-types: "npm:^15.8.1"
-  peerDependencies:
-    react: ">= 16.3.0"
-    react-dom: ">= 16.3.0"
-  checksum: 10c0/6f7591fe450555218bf0d9e31984be02451bf3f678fb121f51ac0a0a645d01a1b5ea8248ef9afddcd24239028911fd88032194b9c00b30ad5ece76ea13397fc3
-  languageName: node
-  linkType: hard
-
-"react-is@npm:^16.13.1":
-  version: 16.13.1
-  resolution: "react-is@npm:16.13.1"
-  checksum: 10c0/33977da7a5f1a287936a0c85639fec6ca74f4f15ef1e59a6bc20338fc73dc69555381e211f7a3529b8150a1f71e4225525b41b60b52965bda53ce7d47377ada1
   languageName: node
   linkType: hard
 

@@ -1,7 +1,8 @@
 # Use a minimal Node.js base image
 #FROM node:20.14.0-alpine docker pull node:22.12-alpine
-ARG node_version="22.15.0"
-FROM node:22.15.0-alpine
+ARG NODE_VERSION=22.15.0
+FROM node:22.15.1-alpine
+#FROM node:${NODE_VERSION}-alpine
 
 WORKDIR /app
 

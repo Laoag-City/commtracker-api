@@ -11,7 +11,6 @@
   "author": "Richard L. Alhama, kechie@eihcek.com",
   "license": "MIT",
   "dependencies": {
-    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
@@ -23,9 +22,8 @@
     "helmet": "^8.1.0",
     "https": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.16.5",
+    "mongoose": "^8.17.1",
     "multer": "^2.0.2",
-    "react-draggable": "^4.5.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {
@@ -33,5 +31,5 @@
     "nodemon": "^3.1.10",
     "supertest": "^7.1.4"
   },
-  "packageManager": "yarn@4.9.1+sha512.f95ce356460e05be48d66401c1ae64ef84d163dd689964962c6888a9810865e39097a5e9de748876c2e0bf89b232d583c33982773e9903ae7a76257270986538"
+  "packageManager": "yarn@4.9.2+sha512.1fc009bc09d13cfd0e19efa44cbfc2b9cf6ca61482725eb35bbc5e257e093ebf4130db6dfe15d604ff4b79efd8e1e8e99b25fa7d0a6197c9f9826358d4d65c3c"
 }
