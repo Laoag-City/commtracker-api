@@ -25,6 +25,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.5",
     "multer": "^2.0.2",
+    "react-draggable": "^4.5.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {
