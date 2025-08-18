@@ -313,6 +313,7 @@ function DTSReceivingDashboard() {
               </tr>
             </thead>
             <tbody>
+              {/*console.log(trackers[0].serialNumber)*/}
               {trackers.map((tracker, index) => (
                 <tr key={tracker._id}>
                   <td>{(currentPage - 1) * trackersPerPage + index + 1}</td>
@@ -595,7 +596,7 @@ function DTSReceivingDashboard() {
       </Modal>
       <Modal show={showQRModal} onHide={() => setShowQRModal(false)} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>QR Code with Attachment</Modal.Title>
+          <Modal.Title>Print QRCode</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {qrTracker && (
@@ -637,13 +638,13 @@ function DTSReceivingDashboard() {
                         src: "/laoaglogo-bw.png",
                         x: undefined,
                         y: undefined,
-                        height: 32,
-                        width: 32,
+                        height: 48,
+                        width: 48,
                         opacity: 1,
                         excavate: true,
                       }}
                     />
-                    <br /> <span className="d-block mt-3">{qrTracker._id}</span>
+                    <br /> <span className="d-block mt-3">{qrTracker.serialNumber}</span>
                   </div>
                 </Draggable>
               </div>

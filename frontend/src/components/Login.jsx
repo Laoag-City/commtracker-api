@@ -43,6 +43,13 @@ function Login() {
 
   return (
     <Container className="d-flex justify-content-center">
+      {/*       <Row className='w-100'>
+        <Col xs={12} md={6} className="mx-auto">
+          <Card className='p-4'>
+            <Card.Title>Welcome to Laoag City&apos;s DTS</Card.Title>
+          </Card>
+        </Col>
+      </Row> */}
       <Row className="w-100">
         <Col xs={12} md={6} className="mx-auto">
           <Card className="p-4">

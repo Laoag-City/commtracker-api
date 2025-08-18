@@ -21,13 +21,13 @@ const DTSStatus = lazy(() => import('./components/DTSStatus'));
 function App() {
   const navigate = useNavigate();
   const userRole = getUserRole();
-  //  const userName = getLoginName();
+  const userName = getLoginName();
   const handleLogout = () => logout(navigate);
 
   const renderNavLinks = () => {
-    if (!isLoggedIn()) {
-      return <Nav.Link as={NavLink} to="/login">Login</Nav.Link>;
-    }
+    /*     if (!isLoggedIn()) {
+          return <Nav.Link className="justify-content-end" as={NavLink} to="/login">Login</Nav.Link>;
+        } */
 
     const roleBasedLinks = [
       { to: "/dtsrecipient", label: "Dashboard", roles: ["recipient"] },
@@ -48,9 +48,6 @@ function App() {
               {link.label}
             </Nav.Link>
           ))}
-        <Nav.Link as="button" className="btn btn-link" onClick={handleLogout}>
-          Logout {/*isLoggedIn ? userName : ''*/}
-        </Nav.Link>
       </>
     );
   };
@@ -69,8 +66,18 @@ function App() {
             />
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
+
           <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="me-auto">{renderNavLinks()}</Nav>
+            <Nav className="me-auto">
+              <Navbar.Text>{isLoggedIn() ? '' : 'Welcome to Laoag City\'s Document Tracking System'}</Navbar.Text>
+              {renderNavLinks()}
+            </Nav>
+            <Navbar.Collapse className="justify-content-end">
+              {isLoggedIn() ?
+                <Nav.Link as="button" className="btn btn-link" onClick={handleLogout}>Logout {isLoggedIn ? userName : ''}</Nav.Link>
+                : <Nav.Link className="justify-content-end" as={NavLink} to="/login">Login</Nav.Link>
+              }
+            </Navbar.Collapse>
           </Navbar.Collapse>
         </Container>
       </Navbar>
