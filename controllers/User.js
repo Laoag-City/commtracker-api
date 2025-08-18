@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const config = require('../config');
 const logger = require('../utils/logger');
 //const { handleError } = require('../utils/errorHandler'); // A centralized error handler utility
-const {handleError} = require('../utils/errorHandler');
+const { handleError } = require('../utils/errorHandler');
 const { validateUserInput } = require('../utils/validators'); // Input validation utility
 
 const secretKey = config.jwtSecret;
@@ -63,11 +63,11 @@ exports.login = async (req, res) => {
 
     // Generate JWT
     const token = jwt.sign(
-      { _id: user._id, username: user.username, deptId: user.deptId, userrole: user.userrole},
+      { _id: user._id, username: user.username, deptId: user.deptId, userrole: user.userrole, deptInitial: user.deptId.initial },
       secretKey,
       { expiresIn: '1d' }
     );
-
+    // console.log(jwt.decode(token));
     res.send({ _id: user._id, username: user.username, userrole: user.userrole, deptId: user.deptId, token });
     logger.info('User logged in successfully', { userId: user._id });
   } catch (error) {

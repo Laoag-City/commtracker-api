@@ -12,6 +12,10 @@ const departmentSchema = new mongoose.Schema({
     required: true,
     unique: true, // Ensure no duplicate department names
     maxlength: 100 // Optional: limit string length
+  },
+  initial: {
+    type: String,
+    required: false,
   }
 }, {
   collection: 'departments',

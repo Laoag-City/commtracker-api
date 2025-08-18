@@ -5,27 +5,27 @@ const bcrypt = require('bcryptjs');
 const ObjectId = mongoose.Schema.Types.ObjectId;
 
 const UserSchema = new mongoose.Schema({
-  username: { 
-    type: String, 
-    required: true, 
+  username: {
+    type: String,
+    required: true,
     unique: true, // Automatically creates a unique index
     lowercase: true, // Enforce lowercase for case-insensitivity
     trim: true, // Remove leading/trailing spaces
   },
-  password: { 
-    type: String, 
-    required: true 
+  password: {
+    type: String,
+    required: true
   },
-  userrole: { 
-    type: String, 
+  userrole: {
+    type: String,
     required: true,
     default: 'recipient',
     enum: ['superadmin', 'admin', 'trackerreceiving', 'recipient', 'viewer', 'trackermonitor'], // Define allowed roles
   },
-  deptId: { 
-    type: ObjectId, 
-    ref: 'Department', 
-    required: true, 
+  deptId: {
+    type: ObjectId,
+    ref: 'Department',
+    required: true,
   }, // Reference to Department _id
 }, {
   collection: 'users',

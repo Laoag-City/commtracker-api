@@ -3,7 +3,7 @@ import { Container, Image, Card, Table, Button, Form, Spinner, Modal, Alert, Row
 import axios from "axios";
 import { pdfjs, Document, Page } from "react-pdf";
 //import RenderPdfFirstPage from "./RenderPDFFirstPage";
-import { getDeptId, getLoginName, getDeptName } from "../utils/authUtils";
+import { getDeptId, getLoginName, getDeptName, getDeptInitial } from "../utils/authUtils";
 import { Check, X, Question, Eye } from 'react-bootstrap-icons';
 pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.3.31/build/pdf.worker.min.mjs";
 import { formatDate } from '../utils/date';
@@ -28,6 +28,7 @@ const DTSRecipientDashboard = () => {
   const token = localStorage.getItem("token");
   const userDeptId = getDeptId();
   const deptName = getDeptName();
+  const deptInitial = getDeptInitial();
 
   // Predefined remark options for checkboxes
   /*   const remarkOptions = [
@@ -184,25 +185,34 @@ const DTSRecipientDashboard = () => {
     } catch (error) {
       setAlert({
         show: true,
-        message: 'Failed to print the document. Please try again or download the file.',
+        message: ('Failed to print the document. Please try again or download the file.', error),
         variant: 'danger',
       });
     }
   };
   // Render the component
   return (
-    <Container fluid>
+    < Container fluid >
       <Row>
         <Col md={12} className="p-3">
           <Card className="mb-3">
             <Card.Body>
-              {/*<Card.Title>Welcome {deptName}<Image src={`/logossml/${deptName}.png`} xs={6} className="" roundedCircle /></Card.Title>*/}
-              <Card.Title>Welcome {deptName}</Card.Title>
+              <Container>
+                <Card.Title>
+                  <Row className="align-items-center">
+                    <Col md={4}>Welcome {deptName}</Col>
+                    <Col md={8}>
+                      <Image src={`/logossml/${deptInitial}.png`} fluid style={{ maxHeight: '80px' }} />
+                    </Col>
+                  </Row>
+                </Card.Title>
+              </Container>
               <Card.Text>
                 {/* Total Communications: {documents.length} | Current Page: {currentPage} | Total Pages: {totalPages}*/}
               </Card.Text>
             </Card.Body>
           </Card>
+          {/*console.log(deptInitial)*/}
           {alert.show && (
             <Alert variant={alert.variant} onClose={() => setAlert({ show: false })} dismissible>
               {alert.message}
@@ -288,56 +298,57 @@ const DTSRecipientDashboard = () => {
           )}
         </Col>
       </Row>
-      {selectedDoc && selectedDoc.attachment && (
-        <Modal show={showAttachmentModal} onHide={() => setShowAttachmentModal(false)} size="lg">
-          <Modal.Header closeButton>
-            <Modal.Title>PDF Viewer</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div className="d-flex justify-content-end mb-2">
-              {/*               <Button variant="primary" onClick={() => { handlePrint() }}>Print</Button>*/}
-              <Button
-                variant="primary"
-                onClick={() => {
-                  // Print only the PDF area
-                  const iframe = document.createElement('iframe');
-                  iframe.style.position = 'fixed';
-                  iframe.style.right = '0';
-                  iframe.style.bottom = '0';
-                  iframe.style.width = '0';
-                  iframe.style.height = '0';
-                  iframe.style.border = 'none';
-                  iframe.src = `${API_URL}/trackers/files/${selectedDoc.attachment}`;
-                  document.body.appendChild(iframe);
-                  iframe.onload = function () {
-                    iframe.contentWindow.focus();
-                    iframe.contentWindow.print();
-                    setTimeout(() => document.body.removeChild(iframe), 1000);
-                  };
-                }}
-              >
-                Download
-              </Button>
-            </div>
-            <Document
-              file={`${API_URL}/trackers/files/${selectedDoc.attachment}`}
-              onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                {Array.from({ length: numPages || 0 }, (_, index) => (
-                  <Page
-                    key={index}
-                    pageNumber={index + 1}
-                    width={600}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                  />
-                ))}
+      {
+        selectedDoc && selectedDoc.attachment && (
+          <Modal show={showAttachmentModal} onHide={() => setShowAttachmentModal(false)} size="lg">
+            <Modal.Header closeButton>
+              <Modal.Title>PDF Viewer</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <div className="d-flex justify-content-end mb-2">
+                {/*               <Button variant="primary" onClick={() => { handlePrint() }}>Print</Button>*/}
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    // Print only the PDF area
+                    const iframe = document.createElement('iframe');
+                    iframe.style.position = 'fixed';
+                    iframe.style.right = '0';
+                    iframe.style.bottom = '0';
+                    iframe.style.width = '0';
+                    iframe.style.height = '0';
+                    iframe.style.border = 'none';
+                    iframe.src = `${API_URL}/trackers/files/${selectedDoc.attachment}`;
+                    document.body.appendChild(iframe);
+                    iframe.onload = function () {
+                      iframe.contentWindow.focus();
+                      iframe.contentWindow.print();
+                      setTimeout(() => document.body.removeChild(iframe), 1000);
+                    };
+                  }}
+                >
+                  Download
+                </Button>
               </div>
-            </Document>
-          </Modal.Body>
-        </Modal>
-      )
+              <Document
+                file={`${API_URL}/trackers/files/${selectedDoc.attachment}`}
+                onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  {Array.from({ length: numPages || 0 }, (_, index) => (
+                    <Page
+                      key={index}
+                      pageNumber={index + 1}
+                      width={600}
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                    />
+                  ))}
+                </div>
+              </Document>
+            </Modal.Body>
+          </Modal>
+        )
       }
       {
         selectedDoc && (

@@ -64,6 +64,8 @@ export const getDeptCode = () => getTokenPayloadValue('deptId.deptCode');
  */
 export const getDeptName = () => getTokenPayloadValue('deptId.deptName');
 
+export const getDeptInitial = () => getTokenPayloadValue('deptId.initial')
+
 export const isLoggedIn = () => {
   const token = localStorage.getItem('token');
   if (!token) return false;
