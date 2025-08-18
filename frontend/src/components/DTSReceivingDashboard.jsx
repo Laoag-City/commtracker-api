@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, Component } from "react";
 import { Table, Button, Modal, Form, Spinner, Alert, Pagination, InputGroup, FormControl, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { QRCodeSVG } from "qrcode.react";
 import Draggable from 'react-draggable';
@@ -14,7 +14,22 @@ const API_URL = import.meta.env.MODE === "production"
   : import.meta.env.VITE_API_URL_DEV;
 
 const VITE_URL = import.meta.env.VITE_URL_DEV || import.meta.env.VITE_URL_PROD || API_URL; // Added fallback
+// Error Boundary Component
+class ErrorBoundary extends Component {
+  state = { hasError: false };
 
+  static getDerivedStateFromError(error) {
+    console.error("ErrorBoundary caught:", error);
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div style={{ textAlign: "center", color: "red" }}>Error rendering QR code. Please try again.</div>;
+    }
+    return this.props.children;
+  }
+}
 function DTSReceivingDashboard() {
   const [trackers, setTrackers] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -45,6 +60,7 @@ function DTSReceivingDashboard() {
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrTracker, setQRTracker] = useState(null);
   //  const [base64Attachment, setBase64Attachment] = useState(null);
+  const qrRef = useRef(null); // Ref for Draggable
 
   const authHeaders = {
     headers: {
@@ -68,29 +84,6 @@ function DTSReceivingDashboard() {
       setLoading(false);
     }
   }, [currentPage, searchQuery, trackersPerPage, token]);
-
-  /*   const fetchAttachment = useCallback(async () => {
-      if (currentTracker.attachment) {
-        try {
-          const response = await axios.get(
-            `${API_URL}/trackers/files/${currentTracker.attachment}`,
-            {
-              responseType: "arraybuffer",
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
-          const base64String = btoa(
-            String.fromCharCode(...new Uint8Array(response.data))
-          );
-          setBase64Attachment(`data:${currentTracker.attachmentMimeType};base64,${base64String}`);
-        } catch (error) {
-          console.error("Error fetching attachment:", error);
-          setBase64Attachment(null);
-        }
-      } else {
-        setBase64Attachment(null);
-      }
-    }, [currentTracker.attachment, currentTracker.attachmentMimeType, token]); */
 
   const fetchDepartments = useCallback(async () => {
     setLoading(true);
@@ -153,33 +146,49 @@ function DTSReceivingDashboard() {
     const printContent = document.getElementById("printable-area");
     const printWindow = window.open("", "_blank");
     printWindow.document.write(`
-      <html>
-        <head>
-          <title>Print Attachment</title>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              margin: 20px;
-              text-align: center;
-            }
-            img, embed {
-              max-width: 100%;
-              height: auto;
-            }
-            .qr-code {
-              margin-top: 10px;
-            }
-          </style>
-        </head>
-        <body>
+    <html>
+      <head>
+        <title>Print Attachment</title>
+        <style>
+          @page {
+            size: A4;
+            margin: 0;
+          }
+          body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 297mm; /* A4 height */
+            width: 210mm; /* A4 width */
+          }
+          .printable-content {
+            text-align: center;
+            max-width: 210mm;
+            max-height: 297mm;
+            padding: 20px;
+          }
+          .qr-code {
+            margin-top: 10px;
+          }
+          img, svg {
+            max-width: 100%;
+            height: auto;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="printable-content">
           ${printContent.innerHTML}
-        </body>
-      </html>
-    `);
+        </div>
+      </body>
+    </html>
+  `);
     printWindow.document.close();
     printWindow.print();
+    printWindow.close();
   };
-
   const handleSave = async () => {
     if (!currentTracker.fromName || !currentTracker.documentTitle || !currentTracker.dateReceived) {
       setError("All fields are required.");
@@ -590,69 +599,64 @@ function DTSReceivingDashboard() {
         </Modal.Header>
         <Modal.Body>
           {qrTracker && (
-            <div
-              id="printable-area"
-              style={{
-                textAlign: "center",
-                padding: "20px",
-                width: "100%",
-                height: "100%",
-                border: "none",
-                position: "relative",
-              }}
-            >
-              {import.meta.env.MODE === 'production' ? (
-                <QRCodeSVG
-                  value={`https://commtracker.laoagcity.gov.ph/status/${qrTracker._id}`}
-                  size={128}
-                  bgColor="#ffffff"
-                  fgColor="#000000"
-                  level="H"
-                  imageSettings={{
-                    src: "/laoaglogo-bw.png",
-                    x: undefined,
-                    y: undefined,
-                    height: 16,
-                    width: 16,
-                    opacity: 1,
-                    excavate: true,
-                  }}
-                />
-              ) : (
-                <QRCodeSVG
-                  value={`https://commtracker.laoagcity.gov.ph/status/${qrTracker._id}`}
-                  size={128}
-                  bgColor="#ffffff"
-                  fgColor="#000000"
-                  level="L"
-                  imageSettings={{
-                    src: "/laoaglogo-bw.png",
-                    x: undefined,
-                    y: undefined,
-                    height: 16,
-                    width: 16,
-                    opacity: 1,
-                    excavate: true,
-                  }}
-                />
-              )}
-              <br /><span className="d-block mt-3">{qrTracker._id}</span>
-            </div>
+            <ErrorBoundary>
+              <div
+                id="printable-area"
+                style={{
+                  textAlign: "center",
+                  padding: "20px",
+                  width: "210mm",
+                  height: "297mm",
+                  maxWidth: "794px", // A4 width at 96 DPI
+                  maxHeight: "1123px", // A4 height at 96 DPI
+                  border: "1px solid #ccc",
+                  position: "relative",
+                  margin: "0 auto",
+                }}
+              >
+                <Draggable
+                  bounds="parent"
+                  defaultPosition={{ x: 0, y: 0 }}
+                  nodeRef={qrRef}
+                >
+                  <div
+                    ref={qrRef}
+                    style={{
+                      display: "inline-block",
+                      cursor: "move",
+                      userSelect: "none",
+                    }}
+                  >
+                    <QRCodeSVG
+                      value={`https://commtracker.laoagcity.gov.ph/status/${qrTracker._id}`}
+                      size={256}
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                      level="H"
+                      imageSettings={{
+                        src: "/laoaglogo-bw.png",
+                        x: undefined,
+                        y: undefined,
+                        height: 32,
+                        width: 32,
+                        opacity: 1,
+                        excavate: true,
+                      }}
+                    />
+                    <br /> <span className="d-block mt-3">{qrTracker._id}</span>
+                  </div>
+                </Draggable>
+              </div>
+            </ErrorBoundary>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <OverlayTrigger
-            placement="top"
-            overlay={<Tooltip>Print QR Code</Tooltip>}
-          >
+          <OverlayTrigger placement="top" overlay={<Tooltip>Print QR Code</Tooltip>}>
             <Button variant="link" onClick={printAttachment}>
               <Printer size={20} />
             </Button>
           </OverlayTrigger>
-          <OverlayTrigger
-            placement="top"
-            overlay={<Tooltip>Close</Tooltip>}
-          >
+          <OverlayTrigger placement="top" overlay={<Tooltip>Close</Tooltip>}>
             <Button variant="link" onClick={() => setShowQRModal(false)}>
               <XCircle size={20} />
             </Button>
