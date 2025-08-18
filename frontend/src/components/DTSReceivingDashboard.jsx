@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Table, Button, Modal, Form, Spinner, Alert, Pagination, InputGroup, FormControl, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { QRCodeSVG } from "qrcode.react";
+import Draggable from 'react-draggable';
 import { getLoginName, getUserRole } from "../utils/authUtils";
 import { fetchData } from "../utils/api";
 import axios from "axios";
