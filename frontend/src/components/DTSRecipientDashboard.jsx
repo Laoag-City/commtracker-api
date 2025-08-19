@@ -5,7 +5,7 @@ import { pdfjs, Document, Page } from "react-pdf";
 //import RenderPdfFirstPage from "./RenderPDFFirstPage";
 import { getDeptId, getLoginName, getDeptName, getDeptInitial } from "../utils/authUtils";
 import { Check, X, Question, Eye } from 'react-bootstrap-icons';
-pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.3.31/build/pdf.worker.min.mjs";
+pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.3.93/build/pdf.worker.min.mjs";
 import { formatDate } from '../utils/date';
 
 const API_URL = import.meta.env.MODE === "production"
