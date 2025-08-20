@@ -261,8 +261,8 @@ function DTSReceivingDashboard() {
 
   return (
     <div className="p-4">
-      <div className="display-6">Laoag City Internal Communication Tracking System</div>
-      <h2>Document Tracker Receiving Dashboard</h2>
+      <div className="display-6">Laoag City Document Tracking System</div>
+      <h2>Receiving Account</h2>
       {error && <Alert variant="danger">{error}</Alert>}
       <div className="d-flex justify-content-between align-items-center mb-3">
         {userRole === "trackerreceiving" && (
