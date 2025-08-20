@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef, Component } from "react";
-import { Table, Button, Modal, Form, Spinner, Alert, Pagination, InputGroup, FormControl, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Container, Table, Button, Modal, Form, Spinner, Alert, Pagination, InputGroup, FormControl, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { QRCodeSVG } from "qrcode.react";
 import Draggable from 'react-draggable';
 import { getLoginName, getUserRole } from "../utils/authUtils";
@@ -13,7 +13,7 @@ const API_URL = import.meta.env.MODE === "production"
   ? import.meta.env.VITE_API_URL_PROD
   : import.meta.env.VITE_API_URL_DEV;
 
-const VITE_URL = import.meta.env.VITE_URL_DEV || import.meta.env.VITE_URL_PROD || API_URL; // Added fallback
+//const VITE_URL = import.meta.env.VITE_URL_DEV || import.meta.env.VITE_URL_PROD || API_URL; // Added fallback
 // Error Boundary Component
 class ErrorBoundary extends Component {
   state = { hasError: false };
@@ -260,9 +260,8 @@ function DTSReceivingDashboard() {
   };
 
   return (
-    <div className="p-4">
-      <div className="display-6">Laoag City Document Tracking System</div>
-      <h2>Receiving Account</h2>
+    <Container fluid className="p-4">
+      <h2>Receiving Office ({getLoginName()})</h2>
       {error && <Alert variant="danger">{error}</Alert>}
       <div className="d-flex justify-content-between align-items-center mb-3">
         {userRole === "trackerreceiving" && (
@@ -664,7 +663,7 @@ function DTSReceivingDashboard() {
           </OverlayTrigger>
         </Modal.Footer>
       </Modal>
-    </div>
+    </Container>
   );
 }
 

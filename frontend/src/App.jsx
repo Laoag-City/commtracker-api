@@ -53,9 +53,9 @@ function App() {
   };
 
   return (
-    <div>
+    <div className='app-container'>
       <Navbar expand="lg" bg="light">
-        <Container>
+        <Container fluid>
           <Navbar.Brand as={NavLink} to="/">
             <img
               src="/laoaglogo.png"
@@ -81,7 +81,7 @@ function App() {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-
+      <Container className="display-6">- Laoag City Document Tracking System 2.0 -</Container>
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
           <Route path="/" element={<Home />} />
