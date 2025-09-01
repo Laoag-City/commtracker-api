@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo, useRef, Component } from "react";
-import { Container, Col, Row, Table, Button, Modal, Form, Spinner, Alert, Pagination, InputGroup, FormControl, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Container, Table, Button, Modal, Form, Spinner, Alert, Pagination, InputGroup, FormControl, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { QRCodeSVG } from "qrcode.react";
 import Draggable from 'react-draggable';
-import DualListBox from 'react-dual-listbox'; // Import react-dual-listbox
-import 'react-dual-listbox/lib/react-dual-listbox.css'; // Import required CSS
+import DualListBox from 'react-dual-listbox';
+import 'react-dual-listbox/lib/react-dual-listbox.css';
 import { getLoginName, getUserRole } from "../utils/authUtils";
 import { fetchData } from "../utils/api";
 import axios from "axios";
@@ -11,7 +11,6 @@ import { formatDate } from '../utils/date';
 import { debounce } from 'lodash';
 import { PlusCircle, QrCode, Download, PencilSquare, Trash, Printer, XCircle } from 'react-bootstrap-icons';
 
-// API_URL and ErrorBoundary remain unchanged
 const API_URL = import.meta.env.MODE === "production"
   ? import.meta.env.VITE_API_URL_PROD
   : import.meta.env.VITE_API_URL_DEV;
@@ -35,7 +34,6 @@ class ErrorBoundary extends Component {
 function DTSReceivingDashboard() {
   const [trackers, setTrackers] = useState([]);
   const [departments, setDepartments] = useState([]);
-  //const [filteredDepartments, setFilteredDepartments] = useState([]); // Filtered department list
   const [groups, setGroups] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [trackersPerPage] = useState(25);
@@ -70,19 +68,23 @@ function DTSReceivingDashboard() {
     },
   };
 
-  // Flatten groups.departmentIds into a list of options for DualListBox
-  const departmentOptions = useMemo(() => {
-    return groups
-      .flatMap(group =>
-        group.departmentIds.map(dept => ({
-          value: dept._id,
-          label: `${group.groupName} - ${dept.deptName || dept.initial || 'Unknown Department'}`,
-        }))
-      )
-      .filter((option, index, self) =>
-        index === self.findIndex(o => o.value === option.value) // Remove duplicates
-      );
+  // Create group options for DualListBox
+  const groupOptions = useMemo(() => {
+    return groups.map(group => ({
+      value: group._id,
+      label: group.groupName,
+    }));
   }, [groups]);
+
+  // Map recipient department IDs to their corresponding group IDs for DualListBox
+  const selectedGroups = useMemo(() => {
+    const recipientDeptIds = currentTracker.recipient.map(rec => rec.receivingDepartment);
+    return groups
+      .filter(group =>
+        group.departmentIds.some(dept => recipientDeptIds.includes(dept._id))
+      )
+      .map(group => group._id);
+  }, [groups, currentTracker.recipient]);
 
   // Fetch functions (unchanged)
   const fetchTrackers = useCallback(async () => {
@@ -105,8 +107,6 @@ function DTSReceivingDashboard() {
   const fetchDepartments = useCallback(async () => {
     setLoading(true);
     setError(null);
-    //console.log("Fetching departments...");
-    //console.log("Departments data:", departments);
     try {
       const data = await fetchData(`${API_URL}/departments`, token);
       setDepartments(data || []);
@@ -411,194 +411,139 @@ function DTSReceivingDashboard() {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Col>
-            <Form>
-              <Form.Group className="mb-3 w-75">
-                <Form.Label>From:</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={currentTracker.fromName}
-                  required
-                  onBlur={() => {
-                    if (!currentTracker.fromName) setError("From Name is required.");
-                  }}
-                  onChange={(e) => {
-                    setError(null);
-                    setCurrentTracker({ ...currentTracker, fromName: e.target.value });
-                  }}
-                />
-                <Form.Text className="text-muted">
-                  Sender&apos;s Name in Full
-                </Form.Text>
-              </Form.Group>
-              <Form.Group className="mb-3 w-75">
-                <Form.Label>Doc Title:</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={currentTracker.documentTitle}
-                  required
-                  onBlur={() => {
-                    if (!currentTracker.documentTitle) setError("Document Title is required.");
-                  }}
-                  onChange={(e) => {
-                    setError(null);
-                    setCurrentTracker({
-                      ...currentTracker,
-                      documentTitle: e.target.value,
-                    });
-                  }}
-                />
-                <Form.Text className="text-muted">
-                  Please provide a concise title for the document.
-                </Form.Text>
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Date Received</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={currentTracker.dateReceived ? new Date(currentTracker.dateReceived).toISOString().split('T')[0] : ""}
-                  required
-                  onBlur={() => {
-                    if (!currentTracker.dateReceived) setError("Date Received is required.");
-                  }}
-                  onChange={(e) => {
-                    setError(null);
-                    setCurrentTracker({
-                      ...currentTracker,
-                      dateReceived: e.target.value,
-                    });
-                  }}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Recipients</Form.Label>
-                <DualListBox
-                  options={departmentOptions}
-                  selected={currentTracker.recipient.map(rec => rec.receivingDepartment)}
-                  onChange={(selected) => {
-                    // Map selected department IDs to recipient objects
-                    const updatedRecipients = selected.map(deptId => {
-                      // Check if the department is already in recipients to preserve existing data
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>From Name</Form.Label>
+              <Form.Control
+                type="text"
+                value={currentTracker.fromName}
+                required
+                onBlur={() => {
+                  if (!currentTracker.fromName) setError("From Name is required.");
+                }}
+                onChange={(e) => {
+                  setError(null);
+                  setCurrentTracker({ ...currentTracker, fromName: e.target.value });
+                }}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Document Title</Form.Label>
+              <Form.Control
+                type="text"
+                value={currentTracker.documentTitle}
+                required
+                onBlur={() => {
+                  if (!currentTracker.documentTitle) setError("Document Title is required.");
+                }}
+                onChange={(e) => {
+                  setError(null);
+                  setCurrentTracker({
+                    ...currentTracker,
+                    documentTitle: e.target.value,
+                  });
+                }}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Date Received</Form.Label>
+              <Form.Control
+                type="date"
+                value={currentTracker.dateReceived ? new Date(currentTracker.dateReceived).toISOString().split('T')[0] : ""}
+                required
+                onBlur={() => {
+                  if (!currentTracker.dateReceived) setError("Date Received is required.");
+                }}
+                onChange={(e) => {
+                  setError(null);
+                  setCurrentTracker({
+                    ...currentTracker,
+                    dateReceived: e.target.value,
+                  });
+                }}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Recipient Groups</Form.Label>
+              <DualListBox
+                options={groupOptions}
+                selected={selectedGroups}
+                onChange={(selected) => {
+                  // Map selected group IDs to their department IDs as recipients
+                  const updatedRecipients = selected.flatMap(groupId => {
+                    const selectedGroup = groups.find(g => g._id === groupId);
+                    if (!selectedGroup) return [];
+                    return selectedGroup.departmentIds.map(dept => {
+                      // Preserve existing recipient data if available
                       const existingRecipient = currentTracker.recipient.find(
-                        rec => rec.receivingDepartment === deptId
+                        rec => rec.receivingDepartment === dept._id
                       );
                       return existingRecipient || {
-                        receivingDepartment: deptId,
+                        receivingDepartment: dept._id,
                         receiveDate: new Date(),
                         remarks: "",
                         status: "pending",
                       };
                     });
+                  });
 
-                    // Update error state
-                    if (updatedRecipients.length === 0) {
-                      setError("At least one recipient must be selected.");
-                    } else {
-                      setError(null);
-                    }
+                  // Remove duplicates by department ID
+                  const uniqueRecipients = Array.from(
+                    new Map(updatedRecipients.map(r => [r.receivingDepartment, r])).values()
+                  );
 
+                  // Update error state
+                  if (uniqueRecipients.length === 0) {
+                    setError("At least one recipient group must be selected.");
+                  } else {
+                    setError(null);
+                  }
+
+                  setCurrentTracker({
+                    ...currentTracker,
+                    recipient: uniqueRecipients,
+                  });
+                }}
+                canFilter
+                filterPlaceholder="Search groups..."
+                showHeaderLabels
+                lang={{
+                  availableHeader: 'Available Groups',
+                  selectedHeader: 'Selected Groups',
+                  moveLeft: '<',
+                  moveRight: '>',
+                  moveAllLeft: '<<',
+                  moveAllRight: '>>',
+                }}
+                preserveSelectOrder
+                style={{ height: '200px' }}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Attachment (PDF or Image, max 50MB)</Form.Label>
+              <Form.Control
+                type="file"
+                accept=".pdf,image/*"
+                required={modalType === "create"}
+                onBlur={() => {
+                  if (modalType === "create" && !currentTracker.file) setError("An attachment is required.");
+                }}
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file && file.size > 64 * 1024 * 1024) {
+                    setError("File size must not exceed 50MB.");
+                  } else {
+                    setError(null);
                     setCurrentTracker({
                       ...currentTracker,
-                      recipient: updatedRecipients,
+                      file: file,
                     });
-                  }}
-                  canFilter
-                  filterPlaceholder="Search departments..."
-                  showHeaderLabels
-                  lang={{
-                    availableHeader: 'Available Departments',
-                    selectedHeader: 'Selected Departments',
-                    moveLeft: '<',
-                    moveRight: '>',
-                    moveAllLeft: '<<',
-                    moveAllRight: '>>',
-                  }}
-                  preserveSelectOrder
-                  style={{ height: '200px' }}
-                />
-              </Form.Group>
-              {/* Old Code for Recipients (before DualListBox)
-                          <Form.Group className="mb-3">
-              <Form.Label>Recipients</Form.Label>
-              <div style={{ maxHeight: "200px", overflowY: "auto", border: "1px solid #ced4da", padding: "10px", borderRadius: "4px" }}>
-                {groups.map((group) => (
-                  <Form.Check
-                    key={group._id}
-                    type="checkbox"
-                    id={`group-${group._id}`}
-                    label={group.groupName}
-                    value={group._id}
-                    checked={currentTracker.recipient.some((rec) =>
-                      group.departmentIds.some((dept) => dept._id === rec.receivingDepartment)
-                    )}
-                    onChange={(e) => {
-                      const groupId = e.target.value;
-                      const selectedGroup = groups.find((g) => g._id === groupId);
-                      let updatedRecipients = [...currentTracker.recipient];
-
-                      if (e.target.checked) {
-                        // Add departments from the selected group
-                        const newRecipients = selectedGroup.departmentIds.map((dept) => ({
-                          receivingDepartment: dept._id,
-                          receiveDate: new Date(),
-                          remarks: "",
-                          status: "pending",
-                        }));
-                        updatedRecipients = [...updatedRecipients, ...newRecipients];
-                      } else {
-                        // Remove departments from the unselected group
-                        updatedRecipients = updatedRecipients.filter(
-                          (rec) => !selectedGroup.departmentIds.some((dept) => dept._id === rec.receivingDepartment)
-                        );
-                      }
-
-                      // Remove duplicates by department ID
-                      const uniqueRecipients = Array.from(
-                        new Map(updatedRecipients.map((r) => [r.receivingDepartment, r])).values()
-                      );
-
-                      if (uniqueRecipients.length === 0) {
-                        setError("At least one recipient must be selected.");
-                      } else {
-                        setError(null);
-                      }
-
-                      setCurrentTracker({
-                        ...currentTracker,
-                        recipient: uniqueRecipients,
-                      });
-                    }}
-                  />
-                ))}
-              </div>
+                  }
+                }}
+              />
             </Form.Group>
-               */}
-              <Form.Group className="mb-3">
-                <Form.Label>Attachment (PDF or Image, max 50MB)</Form.Label>
-                <Form.Control
-                  type="file"
-                  accept=".pdf,image/*"
-                  required={modalType === "create"}
-                  onBlur={() => {
-                    if (modalType === "create" && !currentTracker.file) setError("An attachment is required.");
-                  }}
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file && file.size > 64 * 1024 * 1024) {
-                      setError("File size must not exceed 50MB.");
-                    } else {
-                      setError(null);
-                      setCurrentTracker({
-                        ...currentTracker,
-                        file: file,
-                      });
-                    }
-                  }}
-                />
-              </Form.Group>
-              {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
-            </Form>
-          </Col>
+            {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
+          </Form>
         </Modal.Body>
         <Modal.Footer>
           <OverlayTrigger placement="top" overlay={<Tooltip>Cancel</Tooltip>}>
