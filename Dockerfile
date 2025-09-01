@@ -6,15 +6,17 @@ FROM node:22.15.1-alpine
 
 WORKDIR /app
 
-COPY package.json yarn.lock ./
+#COPY package.json yarn.lock ./
 #RUN yarn
-RUN corepack enable yarn
+RUN npm install -g corepack
+#Use Yarn Modern (v2+)
+RUN corepack enable
 # Install dependencies
 # Use --frozen-lockfile to ensure the exact versions in yarn.lock are installed
-RUN yarn install
-RUN yarn --immutable
+#RUN yarn --immutable
 # Copy the rest of the application code
 COPY . .
+RUN yarn install --immutable
 
 EXPOSE 3004
 #key generator
