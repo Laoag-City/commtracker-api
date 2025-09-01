@@ -22,12 +22,12 @@
     "helmet": "^8.1.0",
     "https": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.17.1",
+    "mongoose": "^8.18.0",
     "multer": "^2.0.2",
     "winston": "^3.17.0"
   },
   "devDependencies": {
-    "mongodb": "^6.18.0",
+    "mongodb": "^6.19.0",
     "nodemon": "^3.1.10",
     "supertest": "^7.1.4"
   },

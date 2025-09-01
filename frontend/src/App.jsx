@@ -74,14 +74,14 @@ function App() {
             </Nav>
             <Navbar.Collapse className="justify-content-end">
               {isLoggedIn() ?
-                <Nav.Link as="button" className="btn btn-link" onClick={handleLogout}>Logout {isLoggedIn ? userName : ''}</Nav.Link>
+                <Nav.Link as="button" className="btn btn-link" onClick={handleLogout}>Logout</Nav.Link>
                 : <Nav.Link className="justify-content-end" as={NavLink} to="/login">Login</Nav.Link>
               }
             </Navbar.Collapse>
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      <Container className="display-6">- Laoag City Document Tracking System 2.0 -</Container>
+      <Container className="display-7">- Laoag City Document Tracking System 2.0 -</Container>
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
           <Route path="/" element={<Home />} />
