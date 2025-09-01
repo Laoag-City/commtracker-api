@@ -473,7 +473,7 @@ function DTSReceivingDashboard() {
               </Form.Text>
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Recipients</Form.Label>
+              <Form.Label>Recipients:</Form.Label>
               <DualListBox
                 options={groupOptions}
                 selected={selectedGroups}
@@ -527,6 +527,9 @@ function DTSReceivingDashboard() {
                 preserveSelectOrder
                 style={{ height: '200px' }}
               />
+              <Form.Text className="text-muted">
+                Recipient group selection will determine the departments.
+              </Form.Text>
             </Form.Group>
             {/* Old code before dual listbox
                         <Form.Group className="mb-3">
