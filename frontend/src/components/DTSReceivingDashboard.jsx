@@ -1,20 +1,21 @@
 import { useState, useEffect, useCallback, useMemo, useRef, Component } from "react";
-import { Container, Table, Button, Modal, Form, Spinner, Alert, Pagination, InputGroup, FormControl, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Container, Col, Row, Table, Button, Modal, Form, Spinner, Alert, Pagination, InputGroup, FormControl, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { QRCodeSVG } from "qrcode.react";
 import Draggable from 'react-draggable';
+import DualListBox from 'react-dual-listbox'; // Import react-dual-listbox
+import 'react-dual-listbox/lib/react-dual-listbox.css'; // Import required CSS
 import { getLoginName, getUserRole } from "../utils/authUtils";
 import { fetchData } from "../utils/api";
 import axios from "axios";
 import { formatDate } from '../utils/date';
 import { debounce } from 'lodash';
-import { PlusCircle, QrCode, Download, PencilSquare, Trash, Printer, XCircle } from 'react-bootstrap-icons'; // Import icons
+import { PlusCircle, QrCode, Download, PencilSquare, Trash, Printer, XCircle } from 'react-bootstrap-icons';
 
+// API_URL and ErrorBoundary remain unchanged
 const API_URL = import.meta.env.MODE === "production"
   ? import.meta.env.VITE_API_URL_PROD
   : import.meta.env.VITE_API_URL_DEV;
 
-//const VITE_URL = import.meta.env.VITE_URL_DEV || import.meta.env.VITE_URL_PROD || API_URL; // Added fallback
-// Error Boundary Component
 class ErrorBoundary extends Component {
   state = { hasError: false };
 
@@ -30,9 +31,11 @@ class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
+
 function DTSReceivingDashboard() {
   const [trackers, setTrackers] = useState([]);
   const [departments, setDepartments] = useState([]);
+  //const [filteredDepartments, setFilteredDepartments] = useState([]); // Filtered department list
   const [groups, setGroups] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [trackersPerPage] = useState(25);
@@ -59,8 +62,7 @@ function DTSReceivingDashboard() {
 
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrTracker, setQRTracker] = useState(null);
-  //  const [base64Attachment, setBase64Attachment] = useState(null);
-  const qrRef = useRef(null); // Ref for Draggable
+  const qrRef = useRef(null);
 
   const authHeaders = {
     headers: {
@@ -68,6 +70,21 @@ function DTSReceivingDashboard() {
     },
   };
 
+  // Flatten groups.departmentIds into a list of options for DualListBox
+  const departmentOptions = useMemo(() => {
+    return groups
+      .flatMap(group =>
+        group.departmentIds.map(dept => ({
+          value: dept._id,
+          label: `${group.groupName} - ${dept.deptName || dept.initial || 'Unknown Department'}`,
+        }))
+      )
+      .filter((option, index, self) =>
+        index === self.findIndex(o => o.value === option.value) // Remove duplicates
+      );
+  }, [groups]);
+
+  // Fetch functions (unchanged)
   const fetchTrackers = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -88,6 +105,8 @@ function DTSReceivingDashboard() {
   const fetchDepartments = useCallback(async () => {
     setLoading(true);
     setError(null);
+    //console.log("Fetching departments...");
+    //console.log("Departments data:", departments);
     try {
       const data = await fetchData(`${API_URL}/departments`, token);
       setDepartments(data || []);
@@ -113,11 +132,10 @@ function DTSReceivingDashboard() {
   }, [token]);
 
   const debouncedSearch = useMemo(
-    () =>
-      debounce((value) => {
-        setSearchQuery(value);
-        setCurrentPage(1);
-      }, 300),
+    () => debounce((value) => {
+      setSearchQuery(value);
+      setCurrentPage(1);
+    }, 300),
     []
   );
 
@@ -146,49 +164,29 @@ function DTSReceivingDashboard() {
     const printContent = document.getElementById("printable-area");
     const printWindow = window.open("", "_blank");
     printWindow.document.write(`
-    <html>
-      <head>
-        <title>Print Attachment</title>
-        <style>
-          @page {
-            size: A4;
-            margin: 0;
-          }
-          body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 297mm; /* A4 height */
-            width: 210mm; /* A4 width */
-          }
-          .printable-content {
-            text-align: center;
-            max-width: 210mm;
-            max-height: 297mm;
-            padding: 20px;
-          }
-          .qr-code {
-            margin-top: 10px;
-          }
-          img, svg {
-            max-width: 100%;
-            height: auto;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="printable-content">
-          ${printContent.innerHTML}
-        </div>
-      </body>
-    </html>
-  `);
+      <html>
+        <head>
+          <title>Print Attachment</title>
+          <style>
+            @page { size: A4; margin: 0; }
+            body { font-family: Arial, sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 297mm; width: 210mm; }
+            .printable-content { text-align: center; max-width: 210mm; max-height: 297mm; padding: 20px; }
+            .qr-code { margin-top: 10px; }
+            img, svg { max-width: 100%; height: auto; }
+          </style>
+        </head>
+        <body>
+          <div class="printable-content">
+            ${printContent.innerHTML}
+          </div>
+        </body>
+      </html>
+    `);
     printWindow.document.close();
     printWindow.print();
     printWindow.close();
   };
+
   const handleSave = async () => {
     if (!currentTracker.fromName || !currentTracker.documentTitle || !currentTracker.dateReceived) {
       setError("All fields are required.");
@@ -216,9 +214,7 @@ function DTSReceivingDashboard() {
     try {
       await axios({
         method: modalType === "create" ? "post" : "put",
-        url: modalType === "create"
-          ? `${API_URL}/trackers/new`
-          : `${API_URL}/trackers/${currentTracker._id}`,
+        url: modalType === "create" ? `${API_URL}/trackers/new` : `${API_URL}/trackers/${currentTracker._id}`,
         data: formData,
         headers: {
           ...authHeaders.headers,
@@ -249,7 +245,7 @@ function DTSReceivingDashboard() {
       tracker || {
         fromName: "",
         documentTitle: "",
-        dateReceived: "",
+        dateReceived: new Date().toISOString().split('T')[0],
         recipient: [],
         attachment: null,
         username: userName,
@@ -265,10 +261,7 @@ function DTSReceivingDashboard() {
       {error && <Alert variant="danger">{error}</Alert>}
       <div className="d-flex justify-content-between align-items-center mb-3">
         {userRole === "trackerreceiving" && (
-          <OverlayTrigger
-            placement="top"
-            overlay={<Tooltip>Add New Tracker</Tooltip>}
-          >
+          <OverlayTrigger placement="top" overlay={<Tooltip>Add New Tracker</Tooltip>}>
             <Button variant="link" onClick={() => openModal("create")}>
               <PlusCircle size={24} />
             </Button>
@@ -312,7 +305,6 @@ function DTSReceivingDashboard() {
               </tr>
             </thead>
             <tbody>
-              {/*console.log(trackers[0].serialNumber)*/}
               {trackers.map((tracker, index) => (
                 <tr key={tracker._id}>
                   <td>{(currentPage - 1) * trackersPerPage + index + 1}</td>
@@ -331,16 +323,12 @@ function DTSReceivingDashboard() {
                             rec.status === "rejected" ? (<span className="text-danger">Rejected</span>) :
                               (<span className="text-secondary">Unknown Status</span>)}
                         <span className="text-muted">{rec.remarks ? ` - ${rec.remarks}` : ""}</span>
-                        {/* <span className="text-muted">{rec.receiveDate ? ` - ${formatDate(rec.receiveDate)}` : " - N/A"}</span> */}
                         <span className="text-muted">{rec.dateSeen ? ` - ${formatDate(rec.dateSeen)}` : " - N/A"}</span>
                       </div>
                     ))}
                   </td>
                   <td>
-                    <OverlayTrigger
-                      placement="top"
-                      overlay={<Tooltip>View QR Code</Tooltip>}
-                    >
+                    <OverlayTrigger placement="top" overlay={<Tooltip>View QR Code</Tooltip>}>
                       <Button variant="link" size="sm" onClick={() => openQRModal(tracker)}>
                         <QrCode size={20} />
                       </Button>
@@ -348,10 +336,7 @@ function DTSReceivingDashboard() {
                   </td>
                   <td>
                     {tracker.attachment ? (
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={<Tooltip>Download Attachment</Tooltip>}
-                      >
+                      <OverlayTrigger placement="top" overlay={<Tooltip>Download Attachment</Tooltip>}>
                         <Button
                           variant="link"
                           onClick={async () => {
@@ -381,19 +366,13 @@ function DTSReceivingDashboard() {
                     )}
                   </td>
                   <td>
-                    <OverlayTrigger
-                      placement="top"
-                      overlay={<Tooltip>Edit Tracker</Tooltip>}
-                    >
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Edit Tracker</Tooltip>}>
                       <Button variant="link" size="sm" onClick={() => openModal("update", tracker)}>
                         <PencilSquare size={20} />
                       </Button>
                     </OverlayTrigger>
                     {userRole === "dtssuperadmin" && (
-                      <OverlayTrigger
-                        placement="top"
-                        overlay={<Tooltip>Delete Tracker</Tooltip>}
-                      >
+                      <OverlayTrigger placement="top" overlay={<Tooltip>Delete Tracker</Tooltip>}>
                         <Button variant="link" size="sm" onClick={() => handleDelete(tracker._id)}>
                           <Trash size={20} color="red" />
                         </Button>
@@ -432,59 +411,114 @@ function DTSReceivingDashboard() {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>From Name</Form.Label>
-              <Form.Control
-                type="text"
-                value={currentTracker.fromName}
-                required
-                onBlur={() => {
-                  if (!currentTracker.fromName) setError("From Name is required.");
-                }}
-                onChange={(e) => {
-                  setError(null);
-                  setCurrentTracker({ ...currentTracker, fromName: e.target.value });
-                }}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Document Title</Form.Label>
-              <Form.Control
-                type="text"
-                value={currentTracker.documentTitle}
-                required
-                onBlur={() => {
-                  if (!currentTracker.documentTitle) setError("Document Title is required.");
-                }}
-                onChange={(e) => {
-                  setError(null);
-                  setCurrentTracker({
-                    ...currentTracker,
-                    documentTitle: e.target.value,
-                  });
-                }}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Date Received</Form.Label>
-              <Form.Control
-                type="date"
-                value={currentTracker.dateReceived ? new Date(currentTracker.dateReceived).toISOString().split('T')[0] : ""}
-                required
-                onBlur={() => {
-                  if (!currentTracker.dateReceived) setError("Date Received is required.");
-                }}
-                onChange={(e) => {
-                  setError(null);
-                  setCurrentTracker({
-                    ...currentTracker,
-                    dateReceived: e.target.value,
-                  });
-                }}
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
+          <Col>
+            <Form>
+              <Form.Group className="mb-3 w-75">
+                <Form.Label>From:</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={currentTracker.fromName}
+                  required
+                  onBlur={() => {
+                    if (!currentTracker.fromName) setError("From Name is required.");
+                  }}
+                  onChange={(e) => {
+                    setError(null);
+                    setCurrentTracker({ ...currentTracker, fromName: e.target.value });
+                  }}
+                />
+                <Form.Text className="text-muted">
+                  Sender&apos;s Name in Full
+                </Form.Text>
+              </Form.Group>
+              <Form.Group className="mb-3 w-75">
+                <Form.Label>Doc Title:</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={currentTracker.documentTitle}
+                  required
+                  onBlur={() => {
+                    if (!currentTracker.documentTitle) setError("Document Title is required.");
+                  }}
+                  onChange={(e) => {
+                    setError(null);
+                    setCurrentTracker({
+                      ...currentTracker,
+                      documentTitle: e.target.value,
+                    });
+                  }}
+                />
+                <Form.Text className="text-muted">
+                  Please provide a concise title for the document.
+                </Form.Text>
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Date Received</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={currentTracker.dateReceived ? new Date(currentTracker.dateReceived).toISOString().split('T')[0] : ""}
+                  required
+                  onBlur={() => {
+                    if (!currentTracker.dateReceived) setError("Date Received is required.");
+                  }}
+                  onChange={(e) => {
+                    setError(null);
+                    setCurrentTracker({
+                      ...currentTracker,
+                      dateReceived: e.target.value,
+                    });
+                  }}
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Recipients</Form.Label>
+                <DualListBox
+                  options={departmentOptions}
+                  selected={currentTracker.recipient.map(rec => rec.receivingDepartment)}
+                  onChange={(selected) => {
+                    // Map selected department IDs to recipient objects
+                    const updatedRecipients = selected.map(deptId => {
+                      // Check if the department is already in recipients to preserve existing data
+                      const existingRecipient = currentTracker.recipient.find(
+                        rec => rec.receivingDepartment === deptId
+                      );
+                      return existingRecipient || {
+                        receivingDepartment: deptId,
+                        receiveDate: new Date(),
+                        remarks: "",
+                        status: "pending",
+                      };
+                    });
+
+                    // Update error state
+                    if (updatedRecipients.length === 0) {
+                      setError("At least one recipient must be selected.");
+                    } else {
+                      setError(null);
+                    }
+
+                    setCurrentTracker({
+                      ...currentTracker,
+                      recipient: updatedRecipients,
+                    });
+                  }}
+                  canFilter
+                  filterPlaceholder="Search departments..."
+                  showHeaderLabels
+                  lang={{
+                    availableHeader: 'Available Departments',
+                    selectedHeader: 'Selected Departments',
+                    moveLeft: '<',
+                    moveRight: '>',
+                    moveAllLeft: '<<',
+                    moveAllRight: '>>',
+                  }}
+                  preserveSelectOrder
+                  style={{ height: '200px' }}
+                />
+              </Form.Group>
+              {/* Old Code for Recipients (before DualListBox)
+                          <Form.Group className="mb-3">
               <Form.Label>Recipients</Form.Label>
               <div style={{ maxHeight: "200px", overflowY: "auto", border: "1px solid #ced4da", padding: "10px", borderRadius: "4px" }}>
                 {groups.map((group) => (
@@ -538,45 +572,41 @@ function DTSReceivingDashboard() {
                 ))}
               </div>
             </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Attachment (PDF or Image, max 50MB)</Form.Label>
-              <Form.Control
-                type="file"
-                accept=".pdf,image/*"
-                required={modalType === "create"}
-                onBlur={() => {
-                  if (modalType === "create" && !currentTracker.file) setError("An attachment is required.");
-                }}
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file && file.size > 64 * 1024 * 1024) {
-                    setError("File size must not exceed 50MB.");
-                  } else {
-                    setError(null);
-                    setCurrentTracker({
-                      ...currentTracker,
-                      file: file,
-                    });
-                  }
-                }}
-              />
-            </Form.Group>
-            {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
-          </Form>
+               */}
+              <Form.Group className="mb-3">
+                <Form.Label>Attachment (PDF or Image, max 50MB)</Form.Label>
+                <Form.Control
+                  type="file"
+                  accept=".pdf,image/*"
+                  required={modalType === "create"}
+                  onBlur={() => {
+                    if (modalType === "create" && !currentTracker.file) setError("An attachment is required.");
+                  }}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file && file.size > 64 * 1024 * 1024) {
+                      setError("File size must not exceed 50MB.");
+                    } else {
+                      setError(null);
+                      setCurrentTracker({
+                        ...currentTracker,
+                        file: file,
+                      });
+                    }
+                  }}
+                />
+              </Form.Group>
+              {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
+            </Form>
+          </Col>
         </Modal.Body>
         <Modal.Footer>
-          <OverlayTrigger
-            placement="top"
-            overlay={<Tooltip>Cancel</Tooltip>}
-          >
+          <OverlayTrigger placement="top" overlay={<Tooltip>Cancel</Tooltip>}>
             <Button variant="link" onClick={() => setShowModal(false)}>
               <XCircle size={20} />
             </Button>
           </OverlayTrigger>
-          <OverlayTrigger
-            placement="top"
-            overlay={<Tooltip>Save Tracker</Tooltip>}
-          >
+          <OverlayTrigger placement="top" overlay={<Tooltip>Save Tracker</Tooltip>}>
             <Button
               variant="link"
               onClick={handleSave}
@@ -607,8 +637,8 @@ function DTSReceivingDashboard() {
                   padding: "20px",
                   width: "210mm",
                   height: "297mm",
-                  maxWidth: "794px", // A4 width at 96 DPI
-                  maxHeight: "1123px", // A4 height at 96 DPI
+                  maxWidth: "794px",
+                  maxHeight: "1123px",
                   border: "1px solid #ccc",
                   position: "relative",
                   margin: "0 auto",
