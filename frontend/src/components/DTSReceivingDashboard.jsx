@@ -412,7 +412,7 @@ function DTSReceivingDashboard() {
         </Modal.Header>
         <Modal.Body>
           <Form>
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-3 w-75">
               <Form.Label>From Name</Form.Label>
               <Form.Control
                 type="text"
@@ -426,8 +426,11 @@ function DTSReceivingDashboard() {
                   setCurrentTracker({ ...currentTracker, fromName: e.target.value });
                 }}
               />
+              <Form.Text className="text-muted">
+                Enter the name of the sender or originating office.
+              </Form.Text>
             </Form.Group>
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-3  w-75">
               <Form.Label>Document Title</Form.Label>
               <Form.Control
                 type="text"
@@ -444,8 +447,11 @@ function DTSReceivingDashboard() {
                   });
                 }}
               />
+              <Form.Text className="text-muted">
+                Provide a brief title or description of the document.
+              </Form.Text>
             </Form.Group>
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-3 w-75">
               <Form.Label>Date Received</Form.Label>
               <Form.Control
                 type="date"
@@ -462,9 +468,12 @@ function DTSReceivingDashboard() {
                   });
                 }}
               />
+              <Form.Text className="text-muted">
+                Select the date the document was received.
+              </Form.Text>
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Recipient Groups</Form.Label>
+              <Form.Label>Recipients</Form.Label>
               <DualListBox
                 options={groupOptions}
                 selected={selectedGroups}
@@ -508,8 +517,8 @@ function DTSReceivingDashboard() {
                 filterPlaceholder="Search groups..."
                 showHeaderLabels
                 lang={{
-                  availableHeader: 'Available Groups',
-                  selectedHeader: 'Selected Groups',
+                  availableHeader: 'Groups',
+                  selectedHeader: 'Selected',
                   moveLeft: '<',
                   moveRight: '>',
                   moveAllLeft: '<<',
@@ -519,6 +528,63 @@ function DTSReceivingDashboard() {
                 style={{ height: '200px' }}
               />
             </Form.Group>
+            {/* Old code before dual listbox
+                        <Form.Group className="mb-3">
+              <Form.Label>Recipients</Form.Label>
+              <div style={{ maxHeight: "200px", overflowY: "auto", border: "1px solid #ced4da", padding: "10px", borderRadius: "4px" }}>
+                {groups.map((group) => (
+                  <Form.Check
+                    key={group._id}
+                    type="checkbox"
+                    id={`group-${group._id}`}
+                    label={group.groupName}
+                    value={group._id}
+                    checked={currentTracker.recipient.some((rec) =>
+                      group.departmentIds.some((dept) => dept._id === rec.receivingDepartment)
+                    )}
+                    onChange={(e) => {
+                      const groupId = e.target.value;
+                      const selectedGroup = groups.find((g) => g._id === groupId);
+                      let updatedRecipients = [...currentTracker.recipient];
+
+                      if (e.target.checked) {
+                        // Add departments from the selected group
+                        const newRecipients = selectedGroup.departmentIds.map((dept) => ({
+                          receivingDepartment: dept._id,
+                          receiveDate: new Date(),
+                          remarks: "",
+                          status: "pending",
+                        }));
+                        updatedRecipients = [...updatedRecipients, ...newRecipients];
+                      } else {
+                        // Remove departments from the unselected group
+                        updatedRecipients = updatedRecipients.filter(
+                          (rec) => !selectedGroup.departmentIds.some((dept) => dept._id === rec.receivingDepartment)
+                        );
+                      }
+
+                      // Remove duplicates by department ID
+                      const uniqueRecipients = Array.from(
+                        new Map(updatedRecipients.map((r) => [r.receivingDepartment, r])).values()
+                      );
+
+                      if (uniqueRecipients.length === 0) {
+                        setError("At least one recipient must be selected.");
+                      } else {
+                        setError(null);
+                      }
+
+                      setCurrentTracker({
+                        ...currentTracker,
+                        recipient: uniqueRecipients,
+                      });
+                    }}
+                  />
+                ))}
+              </div>
+            </Form.Group>
+            
+            */}
             <Form.Group className="mb-3">
               <Form.Label>Attachment (PDF or Image, max 50MB)</Form.Label>
               <Form.Control
