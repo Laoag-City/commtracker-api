@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Form,
   Button,
@@ -8,35 +8,35 @@ import {
   Table,
   Card,
   Spinner,
-  Alert, OverlayTrigger, Tooltip
+  Alert,
+  OverlayTrigger,
+  Tooltip,
 } from 'react-bootstrap';
-//import DualListBox from 'react-dual-listbox';
-import DualListBox from './CustomDualListBox';
-import 'react-dual-listbox/lib/react-dual-listbox.css';
+import CustomDualListBox from './CustomDualListBox'; // Replace react-dual-listbox
 import { fetchData } from '../utils/api';
 import axios from 'axios';
+
 function GroupManagement() {
   const [groups, setGroups] = useState([]);
   const [filteredGroups, setFilteredGroups] = useState([]);
   const [groupName, setGroupName] = useState('');
   const [departmentIds, setDepartmentIds] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [filteredDepartments, setFilteredDepartments] = useState([]); // Filtered department list
+  const [filteredDepartments, setFilteredDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editingGroupId, setEditingGroupId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [departmentSearch, setDepartmentSearch] = useState(''); // Department search input state
+  const [departmentSearch, setDepartmentSearch] = useState('');
 
   const token = localStorage.getItem('token');
   const API_URL = import.meta.env.MODE === "production"
     ? import.meta.env.VITE_API_URL_PROD
     : import.meta.env.VITE_API_URL_DEV;
 
-  //  const VITE_URL = import.meta.env.VITE_URL_DEV || import.meta.env.VITE_URL_PROD || API_URL; // Added fallback
-
+  // Fetch groups and departments
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -44,12 +44,9 @@ function GroupManagement() {
         const groupsData = await fetchData(`${API_URL}/groups`, token);
         setGroups(groupsData);
         setFilteredGroups(groupsData);
-        const departmentsData = await fetchData(
-          `${API_URL}/departments`,
-          token
-        );
+        const departmentsData = await fetchData(`${API_URL}/departments`, token);
         setDepartments(departmentsData);
-        setFilteredDepartments(departmentsData); // Initialize filtered departments
+        setFilteredDepartments(departmentsData);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -58,8 +55,8 @@ function GroupManagement() {
     })();
   }, [token]);
 
+  // Filter departments based on deptCode and search query
   useEffect(() => {
-    // Dynamically filter departments when `departmentSearch` changes
     const filtered = departments.filter(
       (dept) =>
         dept.deptCode <= 1000 &&
@@ -68,11 +65,24 @@ function GroupManagement() {
     setFilteredDepartments(filtered);
   }, [departmentSearch, departments]);
 
+  // Create department options for CustomDualListBox, ensuring unique IDs
+  const departmentOptions = useMemo(() => {
+    const deptMap = new Map();
+    filteredDepartments.forEach(dept => {
+      deptMap.set(dept._id, {
+        value: dept._id,
+        label: dept.deptName || dept.initial || 'Unknown',
+      });
+    });
+    return Array.from(deptMap.values());
+  }, [filteredDepartments]);
+
   const resetForm = () => {
     setGroupName('');
     setDepartmentIds([]);
     setEditMode(false);
     setEditingGroupId(null);
+    setDepartmentSearch(''); // Reset department search
   };
 
   const handleSearch = (query) => {
@@ -81,7 +91,9 @@ function GroupManagement() {
     const filtered = groups.filter(
       (group) =>
         group.groupName.toLowerCase().includes(lowerCaseQuery) ||
-        group.departmentIds.some((dept) => dept.deptName.toLowerCase().includes(lowerCaseQuery))
+        group.departmentIds.some((dept) =>
+          dept.deptName.toLowerCase().includes(lowerCaseQuery)
+        )
     );
     setFilteredGroups(filtered);
   };
@@ -144,6 +156,7 @@ function GroupManagement() {
     setEditingGroupId(group._id);
     setGroupName(group.groupName);
     setDepartmentIds(group.departmentIds.map((dept) => dept._id));
+    setDepartmentSearch(''); // Reset search when editing
   };
 
   return (
@@ -176,7 +189,7 @@ function GroupManagement() {
           <Card.Body>
             <Card.Title>{editMode ? 'Edit Receiving Group' : 'Add Receiving Group'}</Card.Title>
             <Form onSubmit={addOrEditGroup}>
-              <Form.Group>
+              <Form.Group className="mb-3">
                 <Form.Label>Receiving Group Name</Form.Label>
                 <Form.Control
                   type="text"
@@ -185,7 +198,7 @@ function GroupManagement() {
                   onChange={(e) => setGroupName(e.target.value)}
                 />
               </Form.Group>
-              <Form.Group>
+              <Form.Group className="mb-3">
                 <Form.Label>Search Departments</Form.Label>
                 <Form.Control
                   type="text"
@@ -194,41 +207,42 @@ function GroupManagement() {
                   onChange={(e) => setDepartmentSearch(e.target.value)}
                 />
               </Form.Group>
-              <Form.Group>
+              <Form.Group className="mb-3">
                 <Form.Label>Select Departments / Division</Form.Label>
-                {filteredDepartments.length > 0 ? (
-                  <DualListBox
-                    options={filteredDepartments.map((dept) => ({
-                      value: dept._id,
-                      label: dept.deptName,
-                    }))}
+                {departmentOptions.length > 0 ? (
+                  <CustomDualListBox
+                    options={departmentOptions}
                     selected={departmentIds}
                     onChange={(selected) => setDepartmentIds(selected)}
+                    filterPlaceholder="Search departments..."
+                    style={{ height: '200px' }}
                   />
                 ) : (
                   <Alert variant="info">No departments match the search criteria.</Alert>
                 )}
               </Form.Group>
-              <hr></hr>
-              <Row className='mb-3'>
+              <hr />
+              <Row className="mb-3">
                 <Col>
                   <Button variant="primary" type="submit" disabled={loading}>
                     {loading ? 'Saving...' : editMode ? 'Update' : 'Add Group'}
-                  </Button></Col>
+                  </Button>
+                </Col>
                 {editMode && (
                   <Col>
                     <Button variant="secondary" onClick={resetForm}>
                       Cancel
-                    </Button></Col>
+                    </Button>
+                  </Col>
                 )}
               </Row>
             </Form>
           </Card.Body>
         </Card>
-        <Card className='mb-3'>
+        <Card className="mb-3">
           <Card.Body>
             <Card.Title>Group List</Card.Title>
-            <Form.Group>
+            <Form.Group className="mb-3">
               <Form.Control
                 type="text"
                 placeholder="Search groups or departments"
@@ -259,9 +273,7 @@ function GroupManagement() {
                           <>
                             <OverlayTrigger
                               overlay={
-                                <Tooltip>
-                                  Editing is disabled for this group.
-                                </Tooltip>
+                                <Tooltip>Editing is disabled for this group.</Tooltip>
                               }
                             >
                               <span className="d-inline-block">
@@ -278,9 +290,7 @@ function GroupManagement() {
                             </OverlayTrigger>
                             <OverlayTrigger
                               overlay={
-                                <Tooltip>
-                                  Deletion is disabled for this group.
-                                </Tooltip>
+                                <Tooltip>Deletion is disabled for this group.</Tooltip>
                               }
                             >
                               <span className="d-inline-block">
@@ -322,8 +332,8 @@ function GroupManagement() {
             )}
           </Card.Body>
         </Card>
-      </Card >
-    </Container >
+      </Card>
+    </Container>
   );
 }
 
