@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef, Component } from "re
 import { Container, Table, Button, Modal, Form, Spinner, Alert, Pagination, InputGroup, FormControl, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { QRCodeSVG } from "qrcode.react";
 import Draggable from 'react-draggable';
-import DualListBox from 'react-dual-listbox';
-import 'react-dual-listbox/lib/react-dual-listbox.css';
+import CustomDualListBox from './CustomDualListBox';
 import { getLoginName, getUserRole } from "../utils/authUtils";
 import { fetchData } from "../utils/api";
 import axios from "axios";
@@ -14,8 +13,6 @@ import { PlusCircle, QrCode, Download, PencilSquare, Trash, Printer, XCircle } f
 const API_URL = import.meta.env.MODE === "production"
   ? import.meta.env.VITE_API_URL_PROD
   : import.meta.env.VITE_API_URL_DEV;
-
-import PropTypes from "prop-types";
 
 class ErrorBoundary extends Component {
   state = { hasError: false };
@@ -32,10 +29,6 @@ class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
-
-ErrorBoundary.propTypes = {
-  children: PropTypes.node,
-};
 
 function DTSReceivingDashboard() {
   const [trackers, setTrackers] = useState([]);
@@ -74,39 +67,29 @@ function DTSReceivingDashboard() {
     },
   };
 
-  // Flatten groups.departmentIds into a list of options for DualListBox
+  // Create department options for CustomDualListBox, ensuring unique department IDs
   const departmentOptions = useMemo(() => {
-    return groups
-      .flatMap(group =>
-        group.departmentIds
-          .filter(dept => dept.deptCode <= 1000) // Only include departments with deptCode <= 1000
-          .map(dept => ({
-            value: dept._id,
-            label: `${dept.deptName || dept.initial || 'Unknown Department'}`,
-          }))
-      )
-      .filter((option, index, self) =>
-        index === self.findIndex(o => o.value === option.value) // Remove duplicates
-      );
+    const deptMap = new Map();
+    //console.log("Groups data for department options:", deptMap);
+    groups
+      .filter(group => group.groupName !== "LFC")
+      .forEach(group => {
+        group.departmentIds.forEach(dept => {
+          if (!deptMap.has(dept._id)) {
+            deptMap.set(dept._id, {
+              value: dept._id,
+              label: `${dept.deptName || dept.initial || 'Unknown'}`,
+            });
+          }
+        });
+      });
+    return Array.from(deptMap.values());
   }, [groups]);
 
-  // Create group options for DualListBox
-  // const groupOptions = useMemo(() => {
-  //   return groups.map(group => ({
-  //     value: group._id,
-  //     label: group.groupName,
-  //   }));
-  // }, [groups]);
-
-  // Map recipient department IDs to their corresponding group IDs for DualListBox
-  // const selectedGroups = useMemo(() => {
-  //   const recipientDeptIds = currentTracker.recipient.map(rec => rec.receivingDepartment);
-  //   return groups
-  //     .filter(group =>
-  //       group.departmentIds.some(dept => recipientDeptIds.includes(dept._id))
-  //     )
-  //     .map(group => group._id);
-  // }, [groups, currentTracker.recipient]);
+  // Selected department IDs
+  const selectedDepartments = useMemo(() => {
+    return currentTracker.recipient.map(rec => rec.receivingDepartment);
+  }, [currentTracker.recipient]);
 
   // Fetch functions (unchanged)
   const fetchTrackers = useCallback(async () => {
@@ -215,7 +198,7 @@ function DTSReceivingDashboard() {
       return;
     }
     if (!Array.isArray(currentTracker.recipient) || currentTracker.recipient.length === 0) {
-      setError("At least one recipient must be selected.");
+      setError("At least one recipient department must be selected.");
       return;
     }
     const formData = new FormData();
@@ -434,7 +417,7 @@ function DTSReceivingDashboard() {
         </Modal.Header>
         <Modal.Body>
           <Form>
-            <Form.Group className="mb-3 w-75">
+            <Form.Group className="mb-3">
               <Form.Label>From Name</Form.Label>
               <Form.Control
                 type="text"
@@ -448,11 +431,8 @@ function DTSReceivingDashboard() {
                   setCurrentTracker({ ...currentTracker, fromName: e.target.value });
                 }}
               />
-              <Form.Text className="text-muted">
-                Enter the name of the sender or originating office.
-              </Form.Text>
             </Form.Group>
-            <Form.Group className="mb-3  w-75">
+            <Form.Group className="mb-3">
               <Form.Label>Document Title</Form.Label>
               <Form.Control
                 type="text"
@@ -469,11 +449,8 @@ function DTSReceivingDashboard() {
                   });
                 }}
               />
-              <Form.Text className="text-muted">
-                Provide a brief title or description of the document.
-              </Form.Text>
             </Form.Group>
-            <Form.Group className="mb-3 w-75">
+            <Form.Group className="mb-3">
               <Form.Label>Date Received</Form.Label>
               <Form.Control
                 type="date"
@@ -490,20 +467,15 @@ function DTSReceivingDashboard() {
                   });
                 }}
               />
-              <Form.Text className="text-muted">
-                Select the date the document was received.
-              </Form.Text>
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Recipients</Form.Label>
-              <DualListBox
+              <Form.Label>Recipient Departments</Form.Label>
+              <CustomDualListBox
                 options={departmentOptions}
-                selected={currentTracker.recipient.map(rec => rec.receivingDepartment)}
-                onChange={(selected) => {
+                selected={selectedDepartments}
+                onChange={(selectedDeptIds) => {
                   // Map selected department IDs to recipient objects
-                  const updatedRecipients = selected.map(deptId => {
-                    // Check if the department is already in recipients to preserve existing data
-                    console.log('Current Recipients:', currentTracker.recipient);
+                  const updatedRecipients = selectedDeptIds.map(deptId => {
                     const existingRecipient = currentTracker.recipient.find(
                       rec => rec.receivingDepartment === deptId
                     );
@@ -514,19 +486,10 @@ function DTSReceivingDashboard() {
                       status: "pending",
                     };
                   });
-                  // Sort recipients to ensure selected items appear at the top (optional, based on desired order)
-                  //const sortedRecipients = [
-                  //  ...updatedRecipients, // Newly selected items
-                  //  ...currentTracker.recipient.filter(
-                  //    rec => !selected.includes(rec.receivingDepartment) // Keep unselected recipients at the bottom
-                  //  ),
-                  //].filter((rec, index, self) =>
-                  //  index === self.findIndex(r => r.receivingDepartment === rec.receivingDepartment) // Remove duplicates
-                  //);
 
                   // Update error state
                   if (updatedRecipients.length === 0) {
-                    setError("At least one recipient must be selected.");
+                    setError("At least one recipient department must be selected.");
                   } else {
                     setError(null);
                   }
@@ -535,28 +498,10 @@ function DTSReceivingDashboard() {
                     ...currentTracker,
                     recipient: updatedRecipients,
                   });
-                  //setCurrentTracker({
-                  //  ...currentTracker,
-                  //  recipient: sortedRecipients, // Use sorted recipients to control order
-                  //});
                 }}
-                canFilter
                 filterPlaceholder="Search departments..."
-                showHeaderLabels
-                lang={{
-                  availableHeader: 'Available Departments',
-                  selectedHeader: 'Selected Departments',
-                  moveLeft: '<',
-                  moveRight: '>',
-                  moveAllLeft: '<<',
-                  moveAllRight: '>>',
-                }}
-                preserveSelectOrder
                 style={{ height: '200px' }}
               />
-              <Form.Text className="text-muted">
-                Select one or more recipient departments.
-              </Form.Text>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Attachment (PDF or Image, max 50MB)</Form.Label>

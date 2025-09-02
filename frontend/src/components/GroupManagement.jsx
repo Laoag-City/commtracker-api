@@ -10,7 +10,8 @@ import {
   Spinner,
   Alert, OverlayTrigger, Tooltip
 } from 'react-bootstrap';
-import DualListBox from 'react-dual-listbox';
+//import DualListBox from 'react-dual-listbox';
+import DualListBox from './CustomDualListBox';
 import 'react-dual-listbox/lib/react-dual-listbox.css';
 import { fetchData } from '../utils/api';
 import axios from 'axios';

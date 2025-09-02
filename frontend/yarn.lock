@@ -1995,7 +1995,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"classnames@npm:^2.2.5, classnames@npm:^2.3.2":
+"classnames@npm:^2.3.2":
   version: 2.5.1
   resolution: "classnames@npm:2.5.1"
   checksum: 10c0/afff4f77e62cea2d79c39962980bf316bacb0d7c49e13a21adaadb9221e1c6b9d3cdb829d8bb1b23c406f4e740507f37e1dcf506f7e3b7113d17c5bab787aa69
@@ -2091,7 +2091,6 @@ __metadata:
     react-bootstrap-icons: "npm:^1.11.6"
     react-dom: "npm:^19.1.1"
     react-draggable: "npm:^4.5.0"
-    react-dual-listbox: "npm:^6.0.3"
     react-pdf: "npm:^10.1.0"
     react-router-dom: "npm:^7.8.2"
     vite: "npm:^7.1.3"
@@ -4481,7 +4480,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:^15.5.8, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
+"prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
   dependencies:
@@ -4584,19 +4583,6 @@ __metadata:
     react: ">= 16.3.0"
     react-dom: ">= 16.3.0"
   checksum: 10c0/6f7591fe450555218bf0d9e31984be02451bf3f678fb121f51ac0a0a645d01a1b5ea8248ef9afddcd24239028911fd88032194b9c00b30ad5ece76ea13397fc3
-  languageName: node
-  linkType: hard
-
-"react-dual-listbox@npm:^6.0.3":
-  version: 6.0.3
-  resolution: "react-dual-listbox@npm:6.0.3"
-  dependencies:
-    classnames: "npm:^2.2.5"
-    lodash: "npm:^4.17.21"
-    prop-types: "npm:^15.5.8"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: 10c0/30f65eee5a90232ba5fa988c0a9aee71c4146a7917458f58f16058278df3f7e3c138c41532e9efa6e786d232c75b65ea2fd1c23e2097941bc2a60ca764deb9e0
   languageName: node
   linkType: hard
 

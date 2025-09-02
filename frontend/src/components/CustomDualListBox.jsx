@@ -1,31 +1,41 @@
-// CustomDualListBox.jsx
 import { useState, useMemo, useCallback } from 'react';
 import { ListGroup, Button, FormControl, Row, Col, InputGroup } from 'react-bootstrap';
+import PropTypes from 'prop-types';
 
 const CustomDualListBox = ({ options, selected, onChange, filterPlaceholder = 'Search...', style }) => {
   const [availableSelected, setAvailableSelected] = useState([]);
   const [selectedSelected, setSelectedSelected] = useState([]);
   const [filter, setFilter] = useState('');
 
+  // Deduplicate options by value to prevent key conflicts
+  const uniqueOptions = useMemo(() => {
+    const seen = new Set();
+    return options.filter(option => {
+      if (seen.has(option.value)) return false;
+      seen.add(option.value);
+      return true;
+    });
+  }, [options]);
+
   // Filter options based on search input
   const filteredOptions = useMemo(() => {
-    if (!filter) return options;
-    return options.filter(option =>
+    if (!filter) return uniqueOptions;
+    return uniqueOptions.filter(option =>
       option.label.toLowerCase().includes(filter.toLowerCase())
     );
-  }, [options, filter]);
+  }, [uniqueOptions, filter]);
 
-  // Available groups (not in selected)
-  const availableGroups = useMemo(() => {
+  // Available items (not in selected)
+  const availableItems = useMemo(() => {
     return filteredOptions.filter(
       option => !selected.includes(option.value)
     );
   }, [filteredOptions, selected]);
 
-  // Selected groups
-  const selectedGroups = useMemo(() => {
-    return options.filter(option => selected.includes(option.value));
-  }, [options, selected]);
+  // Selected items
+  const selectedItems = useMemo(() => {
+    return uniqueOptions.filter(option => selected.includes(option.value));
+  }, [uniqueOptions, selected]);
 
   // Handle moving items from available to selected
   const handleMoveToSelected = useCallback(() => {
@@ -47,10 +57,10 @@ const CustomDualListBox = ({ options, selected, onChange, filterPlaceholder = 'S
 
   // Move all to selected
   const handleMoveAllToSelected = useCallback(() => {
-    const allValues = options.map(option => option.value);
+    const allValues = uniqueOptions.map(option => option.value);
     onChange(allValues);
     setAvailableSelected([]);
-  }, [options, onChange]);
+  }, [uniqueOptions, onChange]);
 
   // Move all to available
   const handleMoveAllToAvailable = useCallback(() => {
@@ -82,10 +92,10 @@ const CustomDualListBox = ({ options, selected, onChange, filterPlaceholder = 'S
             ...style,
           }}
         >
-          {availableGroups.length === 0 ? (
-            <ListGroup.Item disabled>No groups available</ListGroup.Item>
+          {availableItems.length === 0 ? (
+            <ListGroup.Item disabled>No departments available</ListGroup.Item>
           ) : (
-            availableGroups.map(option => (
+            availableItems.map(option => (
               <ListGroup.Item
                 key={option.value}
                 active={availableSelected.includes(option.value)}
@@ -127,7 +137,7 @@ const CustomDualListBox = ({ options, selected, onChange, filterPlaceholder = 'S
           variant="outline-primary"
           size="sm"
           onClick={handleMoveAllToSelected}
-          disabled={availableGroups.length === 0}
+          disabled={availableItems.length === 0}
           className="mb-1"
         >
           &gt;&gt;
@@ -136,7 +146,7 @@ const CustomDualListBox = ({ options, selected, onChange, filterPlaceholder = 'S
           variant="outline-primary"
           size="sm"
           onClick={handleMoveAllToAvailable}
-          disabled={selectedGroups.length === 0}
+          disabled={selectedItems.length === 0}
         >
           &lt;&lt;
         </Button>
@@ -151,10 +161,10 @@ const CustomDualListBox = ({ options, selected, onChange, filterPlaceholder = 'S
             ...style,
           }}
         >
-          {selectedGroups.length === 0 ? (
-            <ListGroup.Item disabled>No groups selected</ListGroup.Item>
+          {selectedItems.length === 0 ? (
+            <ListGroup.Item disabled>No departments selected</ListGroup.Item>
           ) : (
-            selectedGroups.map(option => (
+            selectedItems.map(option => (
               <ListGroup.Item
                 key={option.value}
                 active={selectedSelected.includes(option.value)}
@@ -176,5 +186,18 @@ const CustomDualListBox = ({ options, selected, onChange, filterPlaceholder = 'S
     </Row>
   );
 };
+CustomDualListBox.propTypes = {
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.any.isRequired,
+      label: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  selected: PropTypes.array.isRequired,
+  onChange: PropTypes.func.isRequired,
+  filterPlaceholder: PropTypes.string,
+  style: PropTypes.object,
+};
 
 export default CustomDualListBox;
+//export default CustomDualListBox;
