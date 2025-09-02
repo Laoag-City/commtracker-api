@@ -15,6 +15,8 @@ const API_URL = import.meta.env.MODE === "production"
   ? import.meta.env.VITE_API_URL_PROD
   : import.meta.env.VITE_API_URL_DEV;
 
+import PropTypes from "prop-types";
+
 class ErrorBoundary extends Component {
   state = { hasError: false };
 
@@ -30,6 +32,10 @@ class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
+
+ErrorBoundary.propTypes = {
+  children: PropTypes.node,
+};
 
 function DTSReceivingDashboard() {
   const [trackers, setTrackers] = useState([]);
@@ -68,36 +74,39 @@ function DTSReceivingDashboard() {
     },
   };
 
-  // Create group options for DualListBox
-  const groupOptions = useMemo(() => {
-    return groups.map(group => ({
-      value: group._id,
-      label: group.groupName,
-    }));
-  }, [groups]);
   // Flatten groups.departmentIds into a list of options for DualListBox
   const departmentOptions = useMemo(() => {
     return groups
       .flatMap(group =>
-        group.departmentIds.map(dept => ({
-          value: dept._id,
-          label: `${group.groupName} - ${dept.deptName || dept.initial || 'Unknown Department'}`,
-        }))
+        group.departmentIds
+          .filter(dept => dept.deptCode <= 1000) // Only include departments with deptCode <= 1000
+          .map(dept => ({
+            value: dept._id,
+            label: `${dept.deptName || dept.initial || 'Unknown Department'}`,
+          }))
       )
       .filter((option, index, self) =>
         index === self.findIndex(o => o.value === option.value) // Remove duplicates
       );
   }, [groups]);
 
+  // Create group options for DualListBox
+  // const groupOptions = useMemo(() => {
+  //   return groups.map(group => ({
+  //     value: group._id,
+  //     label: group.groupName,
+  //   }));
+  // }, [groups]);
+
   // Map recipient department IDs to their corresponding group IDs for DualListBox
-  const selectedGroups = useMemo(() => {
-    const recipientDeptIds = currentTracker.recipient.map(rec => rec.receivingDepartment);
-    return groups
-      .filter(group =>
-        group.departmentIds.some(dept => recipientDeptIds.includes(dept._id))
-      )
-      .map(group => group._id);
-  }, [groups, currentTracker.recipient]);
+  // const selectedGroups = useMemo(() => {
+  //   const recipientDeptIds = currentTracker.recipient.map(rec => rec.receivingDepartment);
+  //   return groups
+  //     .filter(group =>
+  //       group.departmentIds.some(dept => recipientDeptIds.includes(dept._id))
+  //     )
+  //     .map(group => group._id);
+  // }, [groups, currentTracker.recipient]);
 
   // Fetch functions (unchanged)
   const fetchTrackers = useCallback(async () => {
@@ -485,65 +494,6 @@ function DTSReceivingDashboard() {
                 Select the date the document was received.
               </Form.Text>
             </Form.Group>
-            {/*             <Form.Group className="mb-3">
-              <Form.Label>Recipients:</Form.Label>
-              <DualListBox
-                options={groupOptions}
-                selected={selectedGroups}
-                onChange={(selected) => {
-                  // Map selected group IDs to their department IDs as recipients
-                  const updatedRecipients = selected.flatMap(groupId => {
-                    const selectedGroup = groups.find(g => g._id === groupId);
-                    if (!selectedGroup) return [];
-                    return selectedGroup.departmentIds.map(dept => {
-                      // Preserve existing recipient data if available
-                      const existingRecipient = currentTracker.recipient.find(
-                        rec => rec.receivingDepartment === dept._id
-                      );
-                      return existingRecipient || {
-                        receivingDepartment: dept._id,
-                        receiveDate: new Date(),
-                        remarks: "",
-                        status: "pending",
-                      };
-                    });
-                  });
-
-                  // Remove duplicates by department ID
-                  const uniqueRecipients = Array.from(
-                    new Map(updatedRecipients.map(r => [r.receivingDepartment, r])).values()
-                  );
-
-                  // Update error state
-                  if (uniqueRecipients.length === 0) {
-                    setError("At least one recipient group must be selected.");
-                  } else {
-                    setError(null);
-                  }
-
-                  setCurrentTracker({
-                    ...currentTracker,
-                    recipient: uniqueRecipients,
-                  });
-                }}
-                canFilter
-                filterPlaceholder="Search groups..."
-                showHeaderLabels
-                lang={{
-                  availableHeader: 'Groups',
-                  selectedHeader: 'Selected',
-                  moveLeft: '<',
-                  moveRight: '>',
-                  moveAllLeft: '<<',
-                  moveAllRight: '>>',
-                }}
-                preserveSelectOrder
-                style={{ height: '200px' }}
-              />
-              <Form.Text className="text-muted">
-                Recipient group selection will determine the departments.
-              </Form.Text>
-            </Form.Group> */}
             <Form.Group className="mb-3">
               <Form.Label>Recipients</Form.Label>
               <DualListBox
@@ -553,6 +503,7 @@ function DTSReceivingDashboard() {
                   // Map selected department IDs to recipient objects
                   const updatedRecipients = selected.map(deptId => {
                     // Check if the department is already in recipients to preserve existing data
+                    console.log('Current Recipients:', currentTracker.recipient);
                     const existingRecipient = currentTracker.recipient.find(
                       rec => rec.receivingDepartment === deptId
                     );
@@ -563,6 +514,15 @@ function DTSReceivingDashboard() {
                       status: "pending",
                     };
                   });
+                  // Sort recipients to ensure selected items appear at the top (optional, based on desired order)
+                  //const sortedRecipients = [
+                  //  ...updatedRecipients, // Newly selected items
+                  //  ...currentTracker.recipient.filter(
+                  //    rec => !selected.includes(rec.receivingDepartment) // Keep unselected recipients at the bottom
+                  //  ),
+                  //].filter((rec, index, self) =>
+                  //  index === self.findIndex(r => r.receivingDepartment === rec.receivingDepartment) // Remove duplicates
+                  //);
 
                   // Update error state
                   if (updatedRecipients.length === 0) {
@@ -575,6 +535,10 @@ function DTSReceivingDashboard() {
                     ...currentTracker,
                     recipient: updatedRecipients,
                   });
+                  //setCurrentTracker({
+                  //  ...currentTracker,
+                  //  recipient: sortedRecipients, // Use sorted recipients to control order
+                  //});
                 }}
                 canFilter
                 filterPlaceholder="Search departments..."
@@ -590,64 +554,10 @@ function DTSReceivingDashboard() {
                 preserveSelectOrder
                 style={{ height: '200px' }}
               />
+              <Form.Text className="text-muted">
+                Select one or more recipient departments.
+              </Form.Text>
             </Form.Group>
-            {/* Old code before dual listbox
-                        <Form.Group className="mb-3">
-              <Form.Label>Recipients</Form.Label>
-              <div style={{ maxHeight: "200px", overflowY: "auto", border: "1px solid #ced4da", padding: "10px", borderRadius: "4px" }}>
-                {groups.map((group) => (
-                  <Form.Check
-                    key={group._id}
-                    type="checkbox"
-                    id={`group-${group._id}`}
-                    label={group.groupName}
-                    value={group._id}
-                    checked={currentTracker.recipient.some((rec) =>
-                      group.departmentIds.some((dept) => dept._id === rec.receivingDepartment)
-                    )}
-                    onChange={(e) => {
-                      const groupId = e.target.value;
-                      const selectedGroup = groups.find((g) => g._id === groupId);
-                      let updatedRecipients = [...currentTracker.recipient];
-
-                      if (e.target.checked) {
-                        // Add departments from the selected group
-                        const newRecipients = selectedGroup.departmentIds.map((dept) => ({
-                          receivingDepartment: dept._id,
-                          receiveDate: new Date(),
-                          remarks: "",
-                          status: "pending",
-                        }));
-                        updatedRecipients = [...updatedRecipients, ...newRecipients];
-                      } else {
-                        // Remove departments from the unselected group
-                        updatedRecipients = updatedRecipients.filter(
-                          (rec) => !selectedGroup.departmentIds.some((dept) => dept._id === rec.receivingDepartment)
-                        );
-                      }
-
-                      // Remove duplicates by department ID
-                      const uniqueRecipients = Array.from(
-                        new Map(updatedRecipients.map((r) => [r.receivingDepartment, r])).values()
-                      );
-
-                      if (uniqueRecipients.length === 0) {
-                        setError("At least one recipient must be selected.");
-                      } else {
-                        setError(null);
-                      }
-
-                      setCurrentTracker({
-                        ...currentTracker,
-                        recipient: uniqueRecipients,
-                      });
-                    }}
-                  />
-                ))}
-              </div>
-            </Form.Group>
-            
-            */}
             <Form.Group className="mb-3">
               <Form.Label>Attachment (PDF or Image, max 50MB)</Form.Label>
               <Form.Control
