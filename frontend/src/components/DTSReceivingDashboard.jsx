@@ -14,6 +14,8 @@ const API_URL = import.meta.env.MODE === "production"
   ? import.meta.env.VITE_API_URL_PROD
   : import.meta.env.VITE_API_URL_DEV;
 
+import PropTypes from "prop-types";
+
 class ErrorBoundary extends Component {
   state = { hasError: false };
 
@@ -29,6 +31,10 @@ class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
+
+ErrorBoundary.propTypes = {
+  children: PropTypes.node,
+};
 
 function DTSReceivingDashboard() {
   const [trackers, setTrackers] = useState([]);
@@ -112,6 +118,7 @@ function DTSReceivingDashboard() {
   const fetchDepartments = useCallback(async () => {
     setLoading(true);
     setError(null);
+    console.info("Department before fetch:", departments);
     try {
       const data = await fetchData(`${API_URL}/departments`, token);
       setDepartments(data || []);
@@ -431,6 +438,9 @@ function DTSReceivingDashboard() {
                   setCurrentTracker({ ...currentTracker, fromName: e.target.value });
                 }}
               />
+              <Form.Text className="text-muted">
+                Enter the name of the sender or department.
+              </Form.Text>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Document Title</Form.Label>
@@ -449,6 +459,9 @@ function DTSReceivingDashboard() {
                   });
                 }}
               />
+              <Form.Text className="text-muted">
+                Enter the title or subject of the document.
+              </Form.Text>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Date Received</Form.Label>
@@ -467,6 +480,9 @@ function DTSReceivingDashboard() {
                   });
                 }}
               />
+              <Form.Text className="text-muted">
+                Select the date the document was received.
+              </Form.Text>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Recipient Departments</Form.Label>
@@ -502,6 +518,9 @@ function DTSReceivingDashboard() {
                 filterPlaceholder="Search departments..."
                 style={{ height: '200px' }}
               />
+              <Form.Text className="text-muted">
+                Select one or more recipient departments.
+              </Form.Text>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Attachment (PDF or Image, max 50MB)</Form.Label>

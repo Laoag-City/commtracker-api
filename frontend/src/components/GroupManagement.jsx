@@ -53,7 +53,7 @@ function GroupManagement() {
         setLoading(false);
       }
     })();
-  }, [token]);
+  }, [token, API_URL]);
 
   // Filter departments based on deptCode and search query
   useEffect(() => {
