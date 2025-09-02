@@ -75,6 +75,19 @@ function DTSReceivingDashboard() {
       label: group.groupName,
     }));
   }, [groups]);
+  // Flatten groups.departmentIds into a list of options for DualListBox
+  const departmentOptions = useMemo(() => {
+    return groups
+      .flatMap(group =>
+        group.departmentIds.map(dept => ({
+          value: dept._id,
+          label: `${group.groupName} - ${dept.deptName || dept.initial || 'Unknown Department'}`,
+        }))
+      )
+      .filter((option, index, self) =>
+        index === self.findIndex(o => o.value === option.value) // Remove duplicates
+      );
+  }, [groups]);
 
   // Map recipient department IDs to their corresponding group IDs for DualListBox
   const selectedGroups = useMemo(() => {
@@ -472,7 +485,7 @@ function DTSReceivingDashboard() {
                 Select the date the document was received.
               </Form.Text>
             </Form.Group>
-            <Form.Group className="mb-3">
+            {/*             <Form.Group className="mb-3">
               <Form.Label>Recipients:</Form.Label>
               <DualListBox
                 options={groupOptions}
@@ -530,6 +543,53 @@ function DTSReceivingDashboard() {
               <Form.Text className="text-muted">
                 Recipient group selection will determine the departments.
               </Form.Text>
+            </Form.Group> */}
+            <Form.Group className="mb-3">
+              <Form.Label>Recipients</Form.Label>
+              <DualListBox
+                options={departmentOptions}
+                selected={currentTracker.recipient.map(rec => rec.receivingDepartment)}
+                onChange={(selected) => {
+                  // Map selected department IDs to recipient objects
+                  const updatedRecipients = selected.map(deptId => {
+                    // Check if the department is already in recipients to preserve existing data
+                    const existingRecipient = currentTracker.recipient.find(
+                      rec => rec.receivingDepartment === deptId
+                    );
+                    return existingRecipient || {
+                      receivingDepartment: deptId,
+                      receiveDate: new Date(),
+                      remarks: "",
+                      status: "pending",
+                    };
+                  });
+
+                  // Update error state
+                  if (updatedRecipients.length === 0) {
+                    setError("At least one recipient must be selected.");
+                  } else {
+                    setError(null);
+                  }
+
+                  setCurrentTracker({
+                    ...currentTracker,
+                    recipient: updatedRecipients,
+                  });
+                }}
+                canFilter
+                filterPlaceholder="Search departments..."
+                showHeaderLabels
+                lang={{
+                  availableHeader: 'Available Departments',
+                  selectedHeader: 'Selected Departments',
+                  moveLeft: '<',
+                  moveRight: '>',
+                  moveAllLeft: '<<',
+                  moveAllRight: '>>',
+                }}
+                preserveSelectOrder
+                style={{ height: '200px' }}
+              />
             </Form.Group>
             {/* Old code before dual listbox
                         <Form.Group className="mb-3">
