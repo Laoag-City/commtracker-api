@@ -77,7 +77,6 @@ function DTSReceivingDashboard() {
   // Create department options for CustomDualListBox, ensuring unique department IDs
   const departmentOptions = useMemo(() => {
     const deptMap = new Map();
-    //console.log("Groups data for department options:", deptMap);
     groups
       .filter(group => group.groupName !== "LFC")
       .forEach(group => {
@@ -98,7 +97,7 @@ function DTSReceivingDashboard() {
     return currentTracker.recipient.map(rec => rec.receivingDepartment);
   }, [currentTracker.recipient]);
 
-  // Fetch functions (unchanged)
+  // Fetch functions
   const fetchTrackers = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -119,7 +118,6 @@ function DTSReceivingDashboard() {
   const fetchDepartments = useCallback(async () => {
     setLoading(true);
     setError(null);
-    //console.info("Department before fetch:", departments);
     try {
       const data = await fetchData(`${API_URL}/departments`, token);
       setDepartments(data || []);
@@ -163,8 +161,8 @@ function DTSReceivingDashboard() {
     if (alert.show) {
       const timer = setTimeout(() => {
         setAlert({ show: false, message: "", variant: "" });
-      }, 5000); // 5 seconds timeout
-      return () => clearTimeout(timer); // Cleanup timer on unmount or alert change
+      }, 5000);
+      return () => clearTimeout(timer);
     }
   }, [fetchTrackers, fetchDepartments, fetchGroups, alert.show]);
 
@@ -260,24 +258,51 @@ function DTSReceivingDashboard() {
 
   const openModal = (type, tracker = null) => {
     setModalType(type);
-    setCurrentTracker(
-      tracker || {
+    setError(null); // Clear any existing errors
+    if (type === "update" && tracker) {
+      setCurrentTracker({
+        _id: tracker._id,
+        fromName: tracker.fromName || "",
+        documentTitle: tracker.documentTitle || "",
+        dateReceived: tracker.dateReceived ? new Date(tracker.dateReceived).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        recipient: tracker.recipient.map(rec => ({
+          receivingDepartment: rec.receivingDepartment?._id || rec.receivingDepartment,
+          receiveDate: rec.receiveDate || new Date().toISOString(),
+          status: rec.status || "pending",
+          remarks: rec.remarks || "",
+        })),
+        attachment: tracker.attachment || null,
+        attachmentMimeType: tracker.attachmentMimeType || null,
+        username: userName,
+        file: null, // File is null unless a new file is selected
+      });
+    } else {
+      setCurrentTracker({
         fromName: "",
         documentTitle: "",
         dateReceived: new Date().toISOString().split('T')[0],
         recipient: [],
         attachment: null,
+        attachmentMimeType: null,
         username: userName,
         file: null,
-      }
-    );
+      });
+    }
     setShowModal(true);
   };
 
   return (
     <Container fluid className="p-4">
       <h2>Receiving Office ({getLoginName()})</h2>
-      {error && <Alert variant="danger">{error}</Alert>}
+      {error && (
+        <Alert
+          variant="danger"
+          onClose={() => setError(null)}
+          dismissible
+        >
+          {error}
+        </Alert>
+      )}
       <div className="d-flex justify-content-between align-items-center mb-3">
         {userRole === "trackerreceiving" && (
           <OverlayTrigger placement="top" overlay={<Tooltip>Add New Tracker</Tooltip>}>
@@ -340,7 +365,7 @@ function DTSReceivingDashboard() {
                         {rec.status === "pending" ? (<span className="text-warning">Pending</span>) :
                           rec.status === "approved" ? (<span className="text-success">Approved</span>) :
                             rec.status === "rejected" ? (<span className="text-danger">Rejected</span>) :
-                              (<span className="text-secondary">Unknown Status</span>)}
+                              (<span class="text-secondary">Unknown Status</span>)}
                         <span className="text-muted">{rec.remarks ? ` - ${rec.remarks}` : ""}</span>
                         <span className="text-muted">{rec.dateSeen ? ` - ${formatDate(rec.dateSeen)}` : " - N/A"}</span>
                       </div>
@@ -474,7 +499,7 @@ function DTSReceivingDashboard() {
               <Form.Label>Date Received</Form.Label>
               <Form.Control
                 type="date"
-                value={currentTracker.dateReceived ? new Date(currentTracker.dateReceived).toISOString().split('T')[0] : ""}
+                value={currentTracker.dateReceived}
                 required
                 onBlur={() => {
                   if (!currentTracker.dateReceived) setError("Date Received is required.");
@@ -497,20 +522,18 @@ function DTSReceivingDashboard() {
                 options={departmentOptions}
                 selected={selectedDepartments}
                 onChange={(selectedDeptIds) => {
-                  // Map selected department IDs to recipient objects
                   const updatedRecipients = selectedDeptIds.map(deptId => {
                     const existingRecipient = currentTracker.recipient.find(
                       rec => rec.receivingDepartment === deptId
                     );
                     return existingRecipient || {
                       receivingDepartment: deptId,
-                      receiveDate: new Date(),
+                      receiveDate: new Date().toISOString(),
                       remarks: "",
                       status: "pending",
                     };
                   });
 
-                  // Update error state
                   if (updatedRecipients.length === 0) {
                     setError("At least one recipient department must be selected.");
                   } else {
@@ -531,6 +554,11 @@ function DTSReceivingDashboard() {
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Attachment (PDF or Image, max 50MB)</Form.Label>
+              {modalType === "update" && currentTracker.attachment && (
+                <div className="mb-2">
+                  <span>Current: {currentTracker.attachmentName || "Attachment"}</span>
+                </div>
+              )}
               <Form.Control
                 type="file"
                 accept=".pdf,image/*"
@@ -547,12 +575,24 @@ function DTSReceivingDashboard() {
                     setCurrentTracker({
                       ...currentTracker,
                       file: file,
+                      attachmentMimeType: file ? file.type : currentTracker.attachmentMimeType,
                     });
                   }
                 }}
               />
+              <Form.Text className="text-muted">
+                {modalType === "create" ? "Upload a PDF or image file." : "Upload a new PDF file to replace the existing attachment."}
+              </Form.Text>
             </Form.Group>
-            {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
+            {error && (
+              <Alert
+                variant="danger"
+                onClose={() => setError(null)}
+                dismissible
+              >
+                {error}
+              </Alert>
+            )}
           </Form>
         </Modal.Body>
         <Modal.Footer>

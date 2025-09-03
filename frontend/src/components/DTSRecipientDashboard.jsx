@@ -83,6 +83,14 @@ const DTSRecipientDashboard = () => {
       return;
     }
     try {
+      //console.log("Saving changes for document:", selectedDoc);
+      //console.log("Selected Remarks:", selectedRemarks);
+      //console.log("Use Other Remarks:", useOtherRemarks);
+      //console.log("Remarks:", selectedDoc.remarks);
+      //console.log("Status:", selectedDoc.status);
+      //console.log("Recipient ID:", selectedDoc.recipient.recipientId);
+      //console.log("PUT URL:", `${API_URL}/trackers/${selectedDoc._id}/recipient/${selectedDoc.recipient.recipientId}`);
+      //console.log(getLoginName());
       const response = await axios.put(
         `${API_URL}/trackers/${selectedDoc._id}/recipient/${selectedDoc.recipient.recipientId}`,
         {
