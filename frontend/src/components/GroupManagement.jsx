@@ -12,7 +12,7 @@ import {
   OverlayTrigger,
   Tooltip,
 } from 'react-bootstrap';
-import CustomDualListBox from './CustomDualListBox'; // Replace react-dual-listbox
+import CustomDualListBox from './CustomDualListBox';
 import { fetchData } from '../utils/api';
 import axios from 'axios';
 
@@ -36,6 +36,28 @@ function GroupManagement() {
     ? import.meta.env.VITE_API_URL_PROD
     : import.meta.env.VITE_API_URL_DEV;
 
+  // Timer for dismissing error alert
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000); // Dismiss error after 5 seconds
+      return () => clearTimeout(timer); // Cleanup timer on unmount or error change
+    }
+  }, [error]);
+
+  // Optional: Timer for dismissing success alert (uncomment to enable)
+  /*
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        setSuccess(null);
+      }, 5000); // Dismiss success after 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
+  */
+
   // Fetch groups and departments
   useEffect(() => {
     (async () => {
@@ -53,7 +75,7 @@ function GroupManagement() {
         setLoading(false);
       }
     })();
-  }, [token, API_URL]);
+  }, [token]);
 
   // Filter departments based on deptCode and search query
   useEffect(() => {
@@ -82,7 +104,7 @@ function GroupManagement() {
     setDepartmentIds([]);
     setEditMode(false);
     setEditingGroupId(null);
-    setDepartmentSearch(''); // Reset department search
+    setDepartmentSearch('');
   };
 
   const handleSearch = (query) => {
@@ -156,7 +178,7 @@ function GroupManagement() {
     setEditingGroupId(group._id);
     setGroupName(group.groupName);
     setDepartmentIds(group.departmentIds.map((dept) => dept._id));
-    setDepartmentSearch(''); // Reset search when editing
+    setDepartmentSearch('');
   };
 
   return (

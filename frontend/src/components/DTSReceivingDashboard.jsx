@@ -45,6 +45,7 @@ function DTSReceivingDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState({ show: false, message: "", variant: "" });
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("create");
@@ -118,7 +119,7 @@ function DTSReceivingDashboard() {
   const fetchDepartments = useCallback(async () => {
     setLoading(true);
     setError(null);
-    console.info("Department before fetch:", departments);
+    //console.info("Department before fetch:", departments);
     try {
       const data = await fetchData(`${API_URL}/departments`, token);
       setDepartments(data || []);
@@ -159,7 +160,13 @@ function DTSReceivingDashboard() {
     fetchTrackers();
     fetchDepartments();
     fetchGroups();
-  }, [fetchTrackers, fetchDepartments, fetchGroups]);
+    if (alert.show) {
+      const timer = setTimeout(() => {
+        setAlert({ show: false, message: "", variant: "" });
+      }, 5000); // 5 seconds timeout
+      return () => clearTimeout(timer); // Cleanup timer on unmount or alert change
+    }
+  }, [fetchTrackers, fetchDepartments, fetchGroups, alert.show]);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
