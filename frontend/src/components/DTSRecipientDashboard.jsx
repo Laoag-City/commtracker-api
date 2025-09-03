@@ -56,7 +56,7 @@ const DTSRecipientDashboard = () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/trackers/filter/department`, {
-        params: { receivingDepartment: userDeptId, page: currentPage, limit: 10 },
+        params: { receivingDepartment: userDeptId, page: currentPage, limit: 25 },
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
@@ -349,7 +349,7 @@ const DTSRecipientDashboard = () => {
                   as="textarea"
                   value={selectedDoc?.remarks || ""}
                   placeholder="Leave remarks here"
-                  style={{ height: '200px' }}
+                  rows={5}
                   onChange={(e) => setSelectedDoc({ ...selectedDoc, remarks: e.target.value })}
                 />
                 {/*

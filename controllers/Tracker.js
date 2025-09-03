@@ -266,7 +266,7 @@ const commTrackersController = {
         { $unwind: '$recipient' },
         { $match: recipientFilter }, // Apply filters
         {
-          $sort: { 'recipient.receiveDate': -1 } // Sort by receiveDate in descending order
+          $sort: { 'dateReceived': -1 } // Sort by receiveDate in descending order
         },
         {
           $lookup: {
@@ -282,6 +282,10 @@ const commTrackersController = {
             _id: '$_id',
             fromName: { $first: '$fromName' },
             documentTitle: { $first: '$documentTitle' },
+            dateReceived: { $first: '$dateReceived' },
+            serialNumber: { $first: '$serialNumber' },
+            status: { $first: '$status' },
+            isArchived: { $first: '$isArchived' },
             attachment: { $first: '$attachment' },
             attachmentMimeType: { $first: '$attachmentMimeType' },
             recipients: {
