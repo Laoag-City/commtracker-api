@@ -36,3 +36,4 @@ frontend/.env
 frontend/.yarn/*
 frontend/.yarn/install-state.gz
 
+.yarn/install-state.gz

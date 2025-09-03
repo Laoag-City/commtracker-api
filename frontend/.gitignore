@@ -3,7 +3,7 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
-!.yarn/versions
+!.yarn/version
 
 # Whether you use PnP or not, the node_modules folder is often used to store
 # build artifacts that should be gitignored

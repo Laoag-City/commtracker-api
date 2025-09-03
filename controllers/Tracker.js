@@ -112,67 +112,237 @@ const commTrackersController = {
   },
   // Update a tracker
   // TODO: Add validation for recipient object
+  /*   updateTrackerById: async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { recipient, ...updateFields } = req.body;
+        const user = req.body?.username || 'Unknown';
+        const parsedRecipient = typeof recipient === "string" ? JSON.parse(recipient) : recipient;
+  
+        // Initialize GridFS Bucket if a new file is provided
+        let fileId = null;
+        if (req.file) {
+          const fileBuffer = req.file.buffer;
+          const fileMimeType = req.file.mimetype;
+  
+          const bucket = new GridFSBucket(mongoose.connection.db, {
+            bucketName: 'attachments'
+          });
+  
+          const uploadStream = bucket.openUploadStream(req.file.originalname, {
+            contentType: fileMimeType,
+            metadata: { user: user }
+          });
+  
+          uploadStream.end(fileBuffer);
+          fileId = uploadStream.id; // Get the fileId from GridFS
+        }
+  
+        const originalTracker = await CommTrackers.findById(id);
+        if (!originalTracker) {
+          return res.status(404).json({ message: "Tracker not found" });
+        }
+  
+        const changes = {};
+        for (const key in updateFields) {
+          if (updateFields[key] !== originalTracker[key]) {
+            changes[key] = updateFields[key];
+          }
+        }
+  
+        if (fileId) {
+          updateFields.attachment = fileId;
+        }
+  
+        const updatedTracker = await CommTrackers.findByIdAndUpdate(
+          id,
+          {
+            ...updateFields,
+            recipient: parsedRecipient,
+            $push: {
+              auditTrail: {
+                action: 'update',
+                modifiedBy: user,
+                changes,
+              },
+            },
+          },
+          { new: true, runValidators: true }
+        );
+  
+        res.status(200).json(updatedTracker);
+      } catch (error) {
+        logger.error('Error updating tracker', { error: error.message });
+        res.status(400).json({ message: 'Error updating tracker', error: error.message });
+      }
+    } */
   updateTrackerById: async (req, res) => {
     try {
       const { id } = req.params;
-      const { recipient, ...updateFields } = req.body;
-      const user = req.body?.username || 'Unknown';
-      const parsedRecipient = typeof recipient === "string" ? JSON.parse(recipient) : recipient;
+      const user = req.body.username || 'Unknown';
 
-      // Initialize GridFS Bucket if a new file is provided
-      let fileId = null;
-      if (req.file) {
-        const fileBuffer = req.file.buffer;
-        const fileMimeType = req.file.mimetype;
+      // Log incoming request data
+      logger.info('Update tracker request:', {
+        body: req.body,
+        files: req.files ? req.files.file : null,
+      });
 
-        const bucket = new GridFSBucket(mongoose.connection.db, {
-          bucketName: 'attachments'
-        });
+      // Parse FormData fields
+      const updateFields = {
+        fromName: req.body.fromName,
+        documentTitle: req.body.documentTitle,
+        dateReceived: req.body.dateReceived,
+      };
 
-        const uploadStream = bucket.openUploadStream(req.file.originalname, {
-          contentType: fileMimeType,
-          metadata: { user: user }
-        });
-
-        uploadStream.end(fileBuffer);
-        fileId = uploadStream.id; // Get the fileId from GridFS
-      }
-
-      const originalTracker = await CommTrackers.findById(id);
-      if (!originalTracker) {
-        return res.status(404).json({ message: "Tracker not found" });
-      }
-
-      const changes = {};
-      for (const key in updateFields) {
-        if (updateFields[key] !== originalTracker[key]) {
-          changes[key] = updateFields[key];
+      // Parse recipient array
+      const recipient = [];
+      for (const key in req.body) {
+        if (key.startsWith('recipient[')) {
+          const match = key.match(/recipient\[(\d+)\]\[(\w+)\]/);
+          if (match) {
+            const index = parseInt(match[1], 10);
+            const field = match[2];
+            if (!recipient[index]) {
+              recipient[index] = {};
+            }
+            recipient[index][field] = req.body[key];
+          } else {
+            logger.warn(`Invalid recipient key format: ${key}`);
+          }
         }
       }
 
-      if (fileId) {
-        updateFields.attachment = fileId;
+      // Log recipient before filtering
+      logger.info('Raw recipient array:', { recipient });
+
+      // Validate and parse recipient array
+      const parsedRecipient = recipient
+        .filter(rec => {
+          if (!rec || !rec.receivingDepartment) {
+            logger.warn('Recipient entry missing receivingDepartment:', { entry: rec });
+            return false;
+          }
+          // Validate ObjectId
+          if (!mongoose.Types.ObjectId.isValid(rec.receivingDepartment)) {
+            logger.warn(`Invalid ObjectId for receivingDepartment: ${rec.receivingDepartment}`);
+            return false;
+          }
+          return true;
+        })
+        .map(rec => ({
+          receivingDepartment: new mongoose.Types.ObjectId(rec.receivingDepartment),
+          receiveDate: rec.receiveDate ? new Date(rec.receiveDate) : new Date(),
+          status: rec.status || 'pending',
+          remarks: rec.remarks || '',
+        }));
+
+      // Log parsed recipient
+      logger.info('Parsed recipient array:', { parsedRecipient });
+
+      // Validate required fields
+      if (!updateFields.fromName || !updateFields.documentTitle || !updateFields.dateReceived) {
+        logger.error('Missing required fields', { updateFields });
+        return res.status(400).json({ message: 'Missing required fields: fromName, documentTitle, or dateReceived' });
+      }
+      if (!parsedRecipient.length) {
+        logger.error('No valid recipient departments provided', { recipient });
+        return res.status(400).json({ message: 'At least one valid recipient department is required' });
       }
 
-      const updatedTracker = await CommTrackers.findByIdAndUpdate(
-        id,
-        {
-          ...updateFields,
-          recipient: parsedRecipient,
-          $push: {
-            auditTrail: {
-              action: 'update',
-              modifiedBy: user,
-              changes,
-            },
+      // Validate receivingDepartment IDs exist in departments collection
+      const departmentIds = parsedRecipient.map(rec => rec.receivingDepartment);
+      const existingDepartments = await mongoose.model('Department').find({
+        _id: { $in: departmentIds },
+      });
+      if (existingDepartments.length !== departmentIds.length) {
+        const missingIds = departmentIds.filter(
+          id => !existingDepartments.some(dept => dept._id.equals(id))
+        );
+        logger.error('Invalid or non-existent department IDs:', { missingIds });
+        return res.status(400).json({ message: `Invalid department IDs: ${missingIds.join(', ')}` });
+      }
+
+      // Handle file upload
+      let fileId = null;
+      let attachmentMimeType = null;
+      if (req.files && req.files.file && req.files.file[0]) {
+        const fileBuffer = req.files.file[0].buffer;
+        attachmentMimeType = req.files.file[0].mimetype;
+        const bucket = new GridFSBucket(mongoose.connection.db, {
+          bucketName: 'attachments',
+        });
+        const uploadStream = bucket.openUploadStream(req.files.file[0].originalname, {
+          contentType: attachmentMimeType,
+          metadata: { user },
+        });
+        uploadStream.end(fileBuffer);
+        await new Promise((resolve, reject) => {
+          uploadStream.on('finish', () => resolve());
+          uploadStream.on('error', (err) => reject(err));
+        });
+        fileId = uploadStream.id;
+        logger.info(`Uploaded file: ${req.files.file[0].originalname}, ID: ${fileId}`);
+      }
+
+      // Fetch original tracker
+      const originalTracker = await CommTrackers.findById(id);
+      if (!originalTracker) {
+        logger.error('Tracker not found', { trackerId: id });
+        return res.status(404).json({ message: 'Tracker not found' });
+      }
+
+      // Track changes for audit trail
+      const changes = {};
+      for (const key in updateFields) {
+        if (updateFields[key] && updateFields[key] !== originalTracker[key]) {
+          changes[key] = updateFields[key];
+        }
+      }
+      if (fileId && fileId.toString() !== originalTracker.attachment?.toString()) {
+        changes.attachment = fileId;
+      }
+      if (
+        parsedRecipient.length !== originalTracker.recipient.length ||
+        parsedRecipient.some(
+          (rec, i) =>
+            rec.receivingDepartment.toString() !==
+            originalTracker.recipient[i]?.receivingDepartment?.toString()
+        )
+      ) {
+        changes.recipient = parsedRecipient;
+      }
+
+      // Prepare update object
+      const updateData = {
+        ...updateFields,
+        recipient: parsedRecipient,
+        ...(fileId && { attachment: fileId }),
+        ...(attachmentMimeType && { attachmentMimeType }),
+        $push: {
+          auditTrail: {
+            action: 'update',
+            modifiedBy: user,
+            changes,
           },
         },
-        { new: true, runValidators: true }
-      );
+      };
 
+      // Update tracker
+      const updatedTracker = await CommTrackers.findByIdAndUpdate(
+        id,
+        updateData,
+        { new: true, runValidators: true }
+      ).populate('recipient.receivingDepartment');
+
+      if (!updatedTracker) {
+        logger.error('Failed to update tracker', { trackerId: id });
+        return res.status(404).json({ message: 'Failed to update tracker' });
+      }
+
+      logger.info(`Tracker updated: ${id}, by user: ${user}`);
       res.status(200).json(updatedTracker);
     } catch (error) {
-      logger.error('Error updating tracker', { error: error.message });
+      logger.error('Error updating tracker', { error: error.message, stack: error.stack });
       res.status(400).json({ message: 'Error updating tracker', error: error.message });
     }
   },
@@ -255,7 +425,7 @@ const commTrackersController = {
         if (dateSeenTo) recipientFilter['recipient.dateSeen'].$lte = new Date(dateSeenTo);
       }
 
-      console.log('Constructed Filter:', recipientFilter);
+      //console.log('Constructed Filter:', recipientFilter);
 
       // Convert page & limit to integers
       const pageNumber = parseInt(page, 10);
@@ -466,7 +636,7 @@ const commTrackersController = {
   getTrackerStatusById: async (req, res) => {
     try {
       const { id } = req.params;
-      console.log(id);
+      //console.log(id);
       // Populate recipient array
       const tracker = await CommTrackers.findById(id)
         .select('status serialNumber dateReceived documentTitle isArchived recipient ') // Specify the fields to return

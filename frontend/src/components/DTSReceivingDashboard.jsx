@@ -204,6 +204,48 @@ function DTSReceivingDashboard() {
     printWindow.close();
   };
 
+  /*   const handleSave = async () => {
+      if (!currentTracker.fromName || !currentTracker.documentTitle || !currentTracker.dateReceived) {
+        setError("All fields are required.");
+        return;
+      }
+      if (!Array.isArray(currentTracker.recipient) || currentTracker.recipient.length === 0) {
+        setError("At least one recipient department must be selected.");
+        return;
+      }
+      const formData = new FormData();
+      formData.append("fromName", currentTracker.fromName);
+      formData.append("documentTitle", currentTracker.documentTitle);
+      formData.append("dateReceived", currentTracker.dateReceived);
+      currentTracker.recipient.forEach((rec, index) => {
+        formData.append(`recipient[${index}][receiveDate]`, rec.receiveDate);
+        formData.append(`recipient[${index}][receivingDepartment]`, rec.receivingDepartment);
+        formData.append(`recipient[${index}][status]`, rec.status);
+        formData.append(`recipient[${index}][remarks]`, rec.remarks);
+      });
+      if (currentTracker.file) {
+        formData.append("attachmentMimeType", currentTracker.file.type);
+        formData.append("file", currentTracker.file);
+      }
+  
+      try {
+        await axios({
+          method: modalType === "create" ? "post" : "put",
+          url: modalType === "create" ? `${API_URL}/trackers/new` : `${API_URL}/trackers/${currentTracker._id}`,
+          data: formData,
+          headers: {
+            ...authHeaders.headers,
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        setShowModal(false);
+        fetchTrackers();
+      } catch (error) {
+        console.error("Error saving tracker:", error.response?.data || error);
+        setError(error.response?.data?.message || "Failed to save tracker.");
+      }
+    };
+   */
   const handleSave = async () => {
     if (!currentTracker.fromName || !currentTracker.documentTitle || !currentTracker.dateReceived) {
       setError("All fields are required.");
@@ -217,15 +259,19 @@ function DTSReceivingDashboard() {
     formData.append("fromName", currentTracker.fromName);
     formData.append("documentTitle", currentTracker.documentTitle);
     formData.append("dateReceived", currentTracker.dateReceived);
+    formData.append("username", currentTracker.username);
     currentTracker.recipient.forEach((rec, index) => {
       formData.append(`recipient[${index}][receiveDate]`, rec.receiveDate);
       formData.append(`recipient[${index}][receivingDepartment]`, rec.receivingDepartment);
       formData.append(`recipient[${index}][status]`, rec.status);
-      formData.append(`recipient[${index}][remarks]`, rec.remarks);
+      formData.append(`recipient[${index}][remarks]`, rec.remarks || "");
     });
     if (currentTracker.file) {
-      formData.append("attachmentMimeType", currentTracker.file.type);
       formData.append("file", currentTracker.file);
+    }
+
+    for (let [key, value] of formData.entries()) {
+      console.log(`FormData: ${key} = ${value instanceof File ? value.name : value}`);
     }
 
     try {
@@ -238,11 +284,14 @@ function DTSReceivingDashboard() {
           "Content-Type": "multipart/form-data",
         },
       });
+      setAlert({ show: true, message: "Tracker saved successfully!", variant: "success" });
       setShowModal(false);
       fetchTrackers();
     } catch (error) {
-      console.error("Error saving tracker:", error.response?.data || error);
-      setError(error.response?.data?.message || "Failed to save tracker.");
+      const errorMessage = error.response?.data?.message || "Failed to save tracker.";
+      console.error("Save error:", error.response?.data || error);
+      setAlert({ show: true, message: errorMessage, variant: "danger" });
+      setError(errorMessage);
     }
   };
 
@@ -365,7 +414,7 @@ function DTSReceivingDashboard() {
                         {rec.status === "pending" ? (<span className="text-warning">Pending</span>) :
                           rec.status === "approved" ? (<span className="text-success">Approved</span>) :
                             rec.status === "rejected" ? (<span className="text-danger">Rejected</span>) :
-                              (<span class="text-secondary">Unknown Status</span>)}
+                              (<span className="text-secondary">Unknown Status</span>)}
                         <span className="text-muted">{rec.remarks ? ` - ${rec.remarks}` : ""}</span>
                         <span className="text-muted">{rec.dateSeen ? ` - ${formatDate(rec.dateSeen)}` : " - N/A"}</span>
                       </div>
