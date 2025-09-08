@@ -24,8 +24,8 @@ const limiter = rateLimit({
 router.post(
   '/new',
   authenticateJWT,
-  //upload.single('file'),
-  upload,
+  upload.single('file'),
+  //upload,
   validateCreateTracker,
   commTrackersController.createTracker
 ); // Create
@@ -45,8 +45,8 @@ router.get('/:id', authenticateJWT, validateTrackerId, commTrackersController.ge
 router.put(
   '/:id',
   authenticateJWT,
-  //upload.single('attachment'),
-  upload,
+  upload.single('file'),
+  //upload,
   validateTrackerId,
   commTrackersController.updateTrackerById
 ); // Update

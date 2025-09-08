@@ -1,4 +1,4 @@
-/* const multer = require('multer');
+const multer = require('multer');
 
 // Configure Multer for in-memory storage
 const storage = multer.memoryStorage();
@@ -21,14 +21,14 @@ const upload = multer({
 });
 
 // Export the configured Multer middleware
-module.exports = upload; */
-const multer = require('multer');
+module.exports = upload;
+/*const multer = require('multer');
 
 const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 },
+  limits: { fileSize: 64 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
     if (allowedTypes.includes(file.mimetype)) {
@@ -40,26 +40,26 @@ const upload = multer({
   },
 }).fields([
   { name: 'file', maxCount: 1 },
-  { name: 'fromName' },
-  { name: 'documentTitle' },
-  { name: 'dateReceived' },
-  { name: 'username' },
-  { name: 'recipient[0][receiveDate]' },
-  { name: 'recipient[0][receivingDepartment]' },
-  { name: 'recipient[0][status]' },
-  { name: 'recipient[0][remarks]' },
-  { name: 'recipient[1][receiveDate]' },
-  { name: 'recipient[1][receivingDepartment]' },
-  { name: 'recipient[1][status]' },
-  { name: 'recipient[1][remarks]' },
-  { name: 'recipient[2][receiveDate]' },
-  { name: 'recipient[2][receivingDepartment]' },
-  { name: 'recipient[2][status]' },
-  { name: 'recipient[2][remarks]' },
-  { name: 'recipient[3][receiveDate]' },
-  { name: 'recipient[3][receivingDepartment]' },
-  { name: 'recipient[3][status]' },
-  { name: 'recipient[3][remarks]' },
+  // { name: 'fromName' },
+  // { name: 'documentTitle' },
+  // { name: 'dateReceived' },
+  // { name: 'username' },
+  // { name: 'recipient[0][receiveDate]' },
+  // { name: 'recipient[0][receivingDepartment]' },
+  // { name: 'recipient[0][status]' },
+  // { name: 'recipient[0][remarks]' },
+  // { name: 'recipient[1][receiveDate]' },
+  // { name: 'recipient[1][receivingDepartment]' },
+  // { name: 'recipient[1][status]' },
+  // { name: 'recipient[1][remarks]' },
+  // { name: 'recipient[2][receiveDate]' },
+  // { name: 'recipient[2][receivingDepartment]' },
+  // { name: 'recipient[2][status]' },
+  // { name: 'recipient[2][remarks]' },
+  // { name: 'recipient[3][receiveDate]' },
+  // { name: 'recipient[3][receivingDepartment]' },
+  // { name: 'recipient[3][status]' },
+  // { name: 'recipient[3][remarks]' },
 ]);
 
-module.exports = upload;
+module.exports = upload;*/
