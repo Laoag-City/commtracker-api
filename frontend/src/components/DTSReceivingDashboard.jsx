@@ -203,8 +203,8 @@ function DTSReceivingDashboard() {
     printWindow.print();
     printWindow.close();
   };
-
-  /*   const handleSave = async () => {
+  /*
+    const handleSave = async () => {
       if (!currentTracker.fromName || !currentTracker.documentTitle || !currentTracker.dateReceived) {
         setError("All fields are required.");
         return;
@@ -244,9 +244,10 @@ function DTSReceivingDashboard() {
         console.error("Error saving tracker:", error.response?.data || error);
         setError(error.response?.data?.message || "Failed to save tracker.");
       }
-    };
-   */
+    };*/
+
   const handleSave = async () => {
+    console.log("Saving tracker:", currentTracker.recipient);
     if (!currentTracker.fromName || !currentTracker.documentTitle || !currentTracker.dateReceived) {
       setError("All fields are required.");
       return;

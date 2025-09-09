@@ -186,28 +186,35 @@ const commTrackersController = {
         body: req.body,
         files: req.files ? req.files.file : null,
       });
-
+      console.log('Request body:', req.body);
+      console.log('Request files:', req.file);
       // Parse FormData fields
       const updateFields = {
         fromName: req.body.fromName,
         documentTitle: req.body.documentTitle,
         dateReceived: req.body.dateReceived,
       };
-
+      //console.log("Update fields:", updateFields);
       // Parse recipient array
-      const recipient = [];
-      for (const key in req.body) {
-        if (key.startsWith('recipient[')) {
-          const match = key.match(/recipient\[(\d+)\]\[(\w+)\]/);
-          if (match) {
-            const index = parseInt(match[1], 10);
-            const field = match[2];
-            if (!recipient[index]) {
-              recipient[index] = {};
+      let recipient = [];
+      if (Array.isArray(req.body.recipient)) {
+        // If recipient is already an array of objects, use it directly
+        recipient = req.body.recipient;
+      } else {
+        // Fallback to existing logic for form-data with bracket notation
+        for (const key in req.body) {
+          if (key.startsWith('recipient[')) {
+            const match = key.match(/recipient\[(\d+)\]\[(\w+)\]/);
+            if (match) {
+              const index = parseInt(match[1], 10);
+              const field = match[2];
+              if (!recipient[index]) {
+                recipient[index] = {};
+              }
+              recipient[index][field] = req.body[key];
+            } else {
+              logger.warn(`Invalid recipient key format: ${key}`);
             }
-            recipient[index][field] = req.body[key];
-          } else {
-            logger.warn(`Invalid recipient key format: ${key}`);
           }
         }
       }
@@ -217,14 +224,14 @@ const commTrackersController = {
 
       // Validate and parse recipient array
       const parsedRecipient = recipient
-        .filter(rec => {
+        .filter((rec, index) => {
           if (!rec || !rec.receivingDepartment) {
-            logger.warn('Recipient entry missing receivingDepartment:', { entry: rec });
+            logger.warn(`Recipient entry missing receivingDepartment at index ${index}:`, { entry: rec });
             return false;
           }
           // Validate ObjectId
           if (!mongoose.Types.ObjectId.isValid(rec.receivingDepartment)) {
-            logger.warn(`Invalid ObjectId for receivingDepartment: ${rec.receivingDepartment}`);
+            logger.warn(`Invalid ObjectId for receivingDepartment at index ${index}: ${rec.receivingDepartment}`);
             return false;
           }
           return true;
@@ -295,11 +302,11 @@ const commTrackersController = {
       const changes = {};
       for (const key in updateFields) {
         if (updateFields[key] && updateFields[key] !== originalTracker[key]) {
-          changes[key] = updateFields[key];
+          changes[key] = String(updateFields[key]); // Convert to string
         }
       }
       if (fileId && fileId.toString() !== originalTracker.attachment?.toString()) {
-        changes.attachment = fileId;
+        changes.attachment = fileId.toString(); // Convert ObjectId to string
       }
       if (
         parsedRecipient.length !== originalTracker.recipient.length ||
@@ -309,7 +316,15 @@ const commTrackersController = {
             originalTracker.recipient[i]?.receivingDepartment?.toString()
         )
       ) {
-        changes.recipient = parsedRecipient;
+        // Convert recipient array to a JSON string
+        changes.recipient = JSON.stringify(
+          parsedRecipient.map(rec => ({
+            receivingDepartment: rec.receivingDepartment.toString(), // Convert ObjectId to string
+            receiveDate: rec.receiveDate instanceof Date ? rec.receiveDate.toISOString() : rec.receiveDate,
+            status: rec.status,
+            remarks: rec.remarks,
+          }))
+        );
       }
 
       // Prepare update object
@@ -322,7 +337,7 @@ const commTrackersController = {
           auditTrail: {
             action: 'update',
             modifiedBy: user,
-            changes,
+            changes, // All values in changes are now strings
           },
         },
       };
