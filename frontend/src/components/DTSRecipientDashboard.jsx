@@ -126,54 +126,54 @@ const DTSRecipientDashboard = () => {
     }
   };
 
-  const handlePrint = async () => {
-    try {
-      // Create a hidden iframe to load the PDF
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
-      iframe.style.border = 'none';
-      document.body.appendChild(iframe);
-
-      // Load the PDF in the iframe
-      iframe.src = `${API_URL}/trackers/files/${selectedDoc.attachment}`;
-
-      // Wait for the iframe to load
-      await new Promise((resolve, reject) => {
-        iframe.onload = () => resolve();
-        iframe.onerror = () => reject(new Error('Failed to load PDF for printing.'));
-      });
-
-      // Trigger the print dialog
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-
-      // Listen for the print dialog closing (approximate detection via blur event)
-      const onAfterPrint = () => {
-        document.body.removeChild(iframe); // Clean up iframe after printing
-        window.removeEventListener('focus', onAfterPrint); // Remove listener
-      };
-
-      // Modern browsers support 'afterprint', but we use 'focus' as a fallback
-      window.addEventListener('focus', onAfterPrint);
-
-      // Fallback cleanup in case the print dialog is canceled
-      setTimeout(() => {
-        if (document.body.contains(iframe)) {
-          document.body.removeChild(iframe);
-          window.removeEventListener('focus', onAfterPrint);
-        }
-      }, 30000); // 30 seconds fallback cleanup
-    } catch (error) {
-      setAlert({
-        show: true,
-        message: "Failed to print the document. Please try again or download the file." + error.message,
-        variant: "danger",
-      });
-    }
-  };
-
+  /*   const handlePrint = async () => {
+      try {
+        // Create a hidden iframe to load the PDF
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = 'none';
+        document.body.appendChild(iframe);
+  
+        // Load the PDF in the iframe
+        iframe.src = `${API_URL}/trackers/files/${selectedDoc.attachment}`;
+  
+        // Wait for the iframe to load
+        await new Promise((resolve, reject) => {
+          iframe.onload = () => resolve();
+          iframe.onerror = () => reject(new Error('Failed to load PDF for printing.'));
+        });
+  
+        // Trigger the print dialog
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+  
+        // Listen for the print dialog closing (approximate detection via blur event)
+        const onAfterPrint = () => {
+          document.body.removeChild(iframe); // Clean up iframe after printing
+          window.removeEventListener('focus', onAfterPrint); // Remove listener
+        };
+  
+        // Modern browsers support 'afterprint', but we use 'focus' as a fallback
+        window.addEventListener('focus', onAfterPrint);
+  
+        // Fallback cleanup in case the print dialog is canceled
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+            window.removeEventListener('focus', onAfterPrint);
+          }
+        }, 30000); // 30 seconds fallback cleanup
+      } catch (error) {
+        setAlert({
+          show: true,
+          message: "Failed to print the document. Please try again or download the file." + error.message,
+          variant: "danger",
+        });
+      }
+    };
+   */
   // Render the component
   return (
     <Container fluid>
@@ -382,6 +382,11 @@ const DTSRecipientDashboard = () => {
                     onChange={(e) => setSelectedDoc({ ...selectedDoc, remarks: e.target.value })}
                     placeholder="Enter other remarks..."
                   />
+                )}
+                {selectedRemarks.length > 0 && !useOtherRemarks && (
+                  <Alert variant="info" className="mt-2">
+                    Selected Remarks: {selectedRemarks.join(", ")}
+                  </Alert>
                 )}
               </Form.Group>
             </Form>
