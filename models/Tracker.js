@@ -35,6 +35,8 @@ const trackerSchema = new mongoose.Schema({
   attachmentMimeType: { type: String },
   isArchived: { type: Boolean, default: false },
   isConfidential: { type: Boolean, default: false },
+  lceAction: { type: String, enum: ['approved', 'disapproved', 'for your comments', 'for review', 'for dissemination', 'noted', 'check availability of fund', 'others'], default: 'approved', required: false },
+  lceKeyedInAction: { type: String, default: '' },
   recipient: [recipientSchema],
   auditTrail: [auditTrailSchema],
 }, {
