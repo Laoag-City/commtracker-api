@@ -59,6 +59,7 @@ function DTSReceivingDashboard() {
     dateReceived: new Date().toISOString().split('T')[0],
     lceAction: "approved",
     lceActionKeyedIn: "",
+    lceActionDate: "",
     recipient: [],
     attachment: null,
     attachmentMimeType: null,
@@ -208,9 +209,15 @@ function DTSReceivingDashboard() {
 
   const handleSave = async () => {
     //console.log("Saving tracker:", currentTracker.recipient);
+    console.log("Current Tracker State:", currentTracker);
+    setError(null);
     if (!currentTracker.fromName || !currentTracker.documentTitle || !currentTracker.dateReceived) {
-      setError("All fields are required.");
+      setError("Required fields are missing.");
       return;
+    }
+    // Set LCD Date to current date and time if LCE Action is set and not "pending"
+    if (currentTracker.lceAction && currentTracker.lceAction !== "pending" && !currentTracker.lceActionDate) {
+      currentTracker.lceActionDate = new Date().toISOString();
     }
     if (!Array.isArray(currentTracker.recipient) || currentTracker.recipient.length === 0) {
       setError("At least one recipient department must be selected.");
@@ -352,6 +359,7 @@ function DTSReceivingDashboard() {
                 <th>From</th>
                 <th>Title</th>
                 <th>ReceiveDate</th>
+                <th>LCE Action / Date</th>
                 <th>Receiving Dept/s-Action-Remarks</th>
                 <th><QrCode size={20} /></th>
                 <th><Download size={20} /></th>
@@ -365,6 +373,7 @@ function DTSReceivingDashboard() {
                   <td>{tracker.fromName}</td>
                   <td>{tracker.documentTitle}</td>
                   <td>{formatDate(tracker.dateReceived)}</td>
+                  <td> {tracker.lceAction}  {tracker.lceActionDate && "/" + formatDate(tracker.lceActionDate)}</td>
                   <td>
                     {tracker.recipient.map((rec, idx) => (
                       <div key={idx}>
