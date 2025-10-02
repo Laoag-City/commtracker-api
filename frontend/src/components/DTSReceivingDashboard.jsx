@@ -61,6 +61,9 @@ function DTSReceivingDashboard() {
     lceActionKeyedIn: "",
     lceActionDate: new Date().toISOString().split('T')[0],
     lceRemarks: "",
+    lceReply: "pending",
+    lceKeyedInReply: "",
+    lceReplyDate: new Date().toISOString().split('T')[0],
     recipient: [],
     attachment: null,
     attachmentMimeType: null,
@@ -272,29 +275,40 @@ function DTSReceivingDashboard() {
 
   const openModal = (type, tracker = null) => {
     setModalType(type);
-    setError(null); // Clear any existing errors
+    setError(null);
     if (type === "update" && tracker) {
       setCurrentTracker({
         _id: tracker._id,
         fromName: tracker.fromName || "",
         documentTitle: tracker.documentTitle || "",
-        dateReceived: tracker.dateReceived ? new Date(tracker.dateReceived).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        dateReceived: tracker.dateReceived ? new Date(tracker.dateReceived).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+        lceAction: tracker.lceAction || "pending",
+        lceActionKeyedIn: tracker.lceKeyedInAction || "",
+        lceActionDate: tracker.lceActionDate ? new Date(tracker.lceActionDate).toISOString().slice(0, 16) : "",
+        lceRemarks: tracker.lceRemarks || "",
         recipient: tracker.recipient.map(rec => ({
           receivingDepartment: rec.receivingDepartment?._id || rec.receivingDepartment,
-          receiveDate: rec.receiveDate || new Date().toISOString(),
+          receiveDate: rec.receiveDate ? new Date(rec.receiveDate).toISOString() : new Date().toISOString(),
           status: rec.status || "pending",
           remarks: rec.remarks || "",
         })),
         attachment: tracker.attachment || null,
         attachmentMimeType: tracker.attachmentMimeType || null,
         username: userName,
-        file: null, // File is null unless a new file is selected
+        file: null,
       });
     } else {
       setCurrentTracker({
         fromName: "",
         documentTitle: "",
-        dateReceived: new Date().toISOString().split('T')[0],
+        dateReceived: new Date().toISOString().slice(0, 10),
+        lceAction: "pending",
+        lceActionKeyedIn: "",
+        lceActionDate: "",
+        lceRemarks: "",
+        lceReply: "pending",
+        lceKeyedInReply: "",
+        lceReplyDate: new Date().toISOString().slice(0, 10),
         recipient: [],
         attachment: null,
         attachmentMimeType: null,
@@ -349,7 +363,7 @@ function DTSReceivingDashboard() {
         <Alert variant="info">No trackers found.</Alert>
       ) : (
         <>
-          <Table striped bordered hover className="text-start">
+          <Table striped bordered hover className="text-start align-top" responsive >
             <thead>
               <tr>
                 <th>#</th>
@@ -358,9 +372,10 @@ function DTSReceivingDashboard() {
                 <th>ReceiveDate</th>
                 <th>LCE Action / Date</th>
                 <th>Receiving Dept/s-Action-Remarks</th>
-                <th><QrCode size={20} /></th>
-                <th><Download size={20} /></th>
-                <th><PencilSquare size={20} /></th>
+                <th>LCE Reply / Date</th>
+                <th className="text-center"><QrCode size={20} /></th>
+                <th className="text-center"><Download size={20} /></th>
+                <th className="text-center"><PencilSquare size={20} /></th>
               </tr>
             </thead>
             <tbody>
@@ -370,7 +385,7 @@ function DTSReceivingDashboard() {
                   <td>{tracker.fromName}</td>
                   <td>{tracker.documentTitle}</td>
                   <td>{formatDate(tracker.dateReceived)}</td>
-                  <td>{tracker.lceAction} {formatDate(tracker.lceActionDate)}</td>
+                  <td>{tracker.lceAction} {tracker.lceActionDate && "/" + formatDate(tracker.lceActionDate)}</td>
                   <td>
                     {tracker.recipient.map((rec, idx) => (
                       <div key={idx}>
@@ -387,6 +402,7 @@ function DTSReceivingDashboard() {
                       </div>
                     ))}
                   </td>
+                  <td>{tracker.lceReply} {tracker.lceReplyDate && "/" + formatDate(tracker.lceReplyDate)}</td>
                   <td>
                     <OverlayTrigger placement="top" overlay={<Tooltip>View QR Code</Tooltip>}>
                       <Button variant="link" size="sm" onClick={() => openQRModal(tracker)}>
@@ -541,12 +557,10 @@ function DTSReceivingDashboard() {
                   setCurrentTracker({
                     ...currentTracker,
                     lceAction: newLceAction,
-                    // Reset lceKeyedInAction if lceAction is not "others"
-                    lceKeyedInAction: newLceAction === "others" ? currentTracker.lceKeyedInAction : "",
-                    // Set lceActionDate if lceAction is not "pending" and not already set
+                    lceKeyedInAction: newLceAction === "others" ? currentTracker.lceActionKeyedIn : "",
                     lceActionDate:
                       newLceAction && newLceAction !== "pending" && !currentTracker.lceActionDate
-                        ? new Date().toISOString().split('T')[0]
+                        ? new Date().toISOString().slice(0, 16)
                         : currentTracker.lceActionDate,
                   });
                   console.log("Selected LCE Action:", newLceAction);
@@ -568,7 +582,7 @@ function DTSReceivingDashboard() {
             </Form.Group>
             {currentTracker.lceAction === "others" && (
               <Form.Group className="mb-3">
-                <Form.Label>LCE Keyed-In Action</Form.Label>
+                <Form.Label>LCE Keyed-In Action <span className="text-danger">*</span></Form.Label>
                 <Form.Control
                   type="text"
                   value={currentTracker.lceActionKeyedIn || ""}
@@ -580,14 +594,14 @@ function DTSReceivingDashboard() {
                   }}
                 />
                 <Form.Text className="text-muted">
-                  Enter the custom LCE action details.
+                  Enter the custom LCE action details (required).
                 </Form.Text>
               </Form.Group>
             )}
             <Form.Group className="mb-3">
-              <Form.Label>LCE Action Date</Form.Label>
+              <Form.Label>LCE Action Date and Time</Form.Label>
               <Form.Control
-                type="date"
+                type="datetime-local"
                 value={currentTracker.lceActionDate || ""}
                 onChange={(e) => {
                   setCurrentTracker({
@@ -597,7 +611,7 @@ function DTSReceivingDashboard() {
                 }}
               />
               <Form.Text className="text-muted">
-                Select the date of the LCE action.
+                Select the date and time of the LCE action.
               </Form.Text>
             </Form.Group>
             <Form.Group className="mb-3">

@@ -39,6 +39,10 @@ const trackerSchema = new mongoose.Schema({
   lceKeyedInAction: { type: String },
   lceActionDate: { type: Date },
   lceRemarks: { type: String },
+  //lceReplyAttachment: { type: Schema.Types.ObjectId, ref: 'attachments' },
+  lceReply: { type: String, enum: ['pending', 'approved', 'disapproved', 'others'], required: false },
+  lceKeyedInReply: { type: String },
+  lceReplyDate: { type: Date },
   recipient: [recipientSchema],
   auditTrail: [auditTrailSchema],
 }, {

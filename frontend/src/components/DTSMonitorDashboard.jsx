@@ -14,11 +14,11 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Container, Row, Col, Card, Table, Button, Modal, Spinner, Alert, Pagination, InputGroup, FormControl, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { QRCodeSVG } from "qrcode.react";
-//import { getLoginName, getUserRole } from "../utils/authUtils";
+import { getLoginName, getUserRole } from "../utils/authUtils";
 import { fetchData } from "../utils/api";
 import { formatDate } from '../utils/date';
 import { debounce } from 'lodash';
-import { Printer, XCircle } from 'react-bootstrap-icons'; // Import icons
+import { Printer, XCircle, PencilSquare } from 'react-bootstrap-icons'; // Import icons
 
 
 const API_URL = import.meta.env.MODE === "production"
@@ -37,10 +37,12 @@ function DTSMonitorDashboard() {
   const [totalPages, setTotalPages] = useState(0);
   const [documentCount, setDocumentCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState({ show: false, message: "", variant: "" });
   const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const token = localStorage.getItem("token");
-  //  const userName = getLoginName();
-  //  const userRole = getUserRole();
+  const userName = getLoginName();
+  const userRole = getUserRole();
 
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [qrTracker, setQRTracker] = useState(null);
@@ -117,6 +119,11 @@ function DTSMonitorDashboard() {
     }
   };
 
+  const openEditModal = () => {
+    //alert("Edit LCE Reply functionality to be implemented.");
+    setAlert({ show: true, message: "Edit LCE Reply functionality to be implemented.", variant: "info" });
+    //setShowModal(true);
+  }
   const openPrintModal = (tracker) => {
     setQRTracker(tracker);
     setShowPrintModal(true);
@@ -159,7 +166,7 @@ function DTSMonitorDashboard() {
         <Col md={12} className="p-3">
           <Card className="mb-3">
             <Card.Body>
-              <Card.Title>DTS Monitor</Card.Title>
+              <Card.Title>DTS Monitor Home</Card.Title>
               <Card.Text>
                 Active Documents: {documentCount} | Current Page: {currentPage} | Total Pages: {totalPages}
               </Card.Text>
@@ -200,7 +207,8 @@ function DTSMonitorDashboard() {
                 <th>From</th>
                 <th>Title</th>
                 <th>ReceiveDate</th>
-                <th>Receiving Dept/s-Action-Remarks</th>
+                <th>Depts-Action-Remarks</th>
+                <th>LCE Reply <PencilSquare size={20} /></th>
                 <th><Printer size={20} /></th>
               </tr>
             </thead>
@@ -226,6 +234,7 @@ function DTSMonitorDashboard() {
                       </div>
                     ))}
                   </td>
+                  <td>{tracker.lceReply || <PencilSquare size={20} onClick={openEditModal} />} {tracker.lceReplyDate && "/" + formatDate(tracker.lceReplyDate)}</td>
                   <td>
                     <OverlayTrigger
                       placement="top"
