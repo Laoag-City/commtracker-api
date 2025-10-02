@@ -57,6 +57,8 @@ function DTSReceivingDashboard() {
     fromName: "",
     documentTitle: "",
     dateReceived: new Date().toISOString().split('T')[0],
+    lceAction: "approved",
+    lceActionKeyedIn: "",
     recipient: [],
     attachment: null,
     attachmentMimeType: null,
@@ -524,6 +526,36 @@ function DTSReceivingDashboard() {
                 Select the date the document was received.
               </Form.Text>
             </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>LCE Action</Form.Label>
+              <Form.Select
+                value={currentTracker.lceAction || "pending"}
+                onChange={(e) => {
+                  setCurrentTracker({
+                    ...currentTracker,
+                    lceAction: e.target.value,
+                  });
+                  console.log("Selected LCE Action:", e.target.value);
+                }}
+              >
+                <option value="approved">Approved</option>
+                <option value="disapproved">Disapproved</option>
+                <option value="for your comments">For Your Comments</option>
+                <option value="for review">For Review</option>
+                <option value="for dissemination">For Dissemination</option>
+                <option value="noted">Noted</option>
+                <option value="check availability of fund">Check Availability of Fund</option>
+                <option value="others">Others</option>
+              </Form.Select>
+              <Form.Text className="text-muted">
+                Select the LCE action for this document.
+              </Form.Text>
+            </Form.Group>
+
+            {currentTracker.lceAction !== undefined && (
+              <Container className="mb-3 p-0">LCE Acted on: {currentTracker.lceActionDate}</Container>
+            )}
+
             <Form.Group className="mb-3">
               <Form.Label>Recipient Departments</Form.Label>
               <CustomDualListBox

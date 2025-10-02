@@ -7,7 +7,7 @@
 core.*
 
 # Build directories
-.yarn/*
+/.yarn/*
 ./yarn-error.log
 /.next
 /.nuxt
@@ -17,8 +17,7 @@ core.*
 /.output/
 /.vercel_build_output
 /.output/public 
-.yarn/install-state.gz
-frontend/.yarn/install-state.gz
+frontend/.yarn/*
 frontend/node_modules
 frontend/package-lock.json
 frontend/combined.log
@@ -35,5 +34,3 @@ frontend/dist
 frontend/.env
 frontend/.yarn/*
 frontend/.yarn/install-state.gz
-
-.yarn/install-state.gz
