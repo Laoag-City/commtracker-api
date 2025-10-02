@@ -7,7 +7,7 @@
 core.*
 
 # Build directories
-/.yarn/*
+/.yarn
 ./yarn-error.log
 /.next
 /.nuxt
