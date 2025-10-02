@@ -37,7 +37,8 @@ function DTSMonitorDashboard() {
   const [totalPages, setTotalPages] = useState(0);
   const [documentCount, setDocumentCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState({ show: false, message: "", variant: "" });
+  //  const [alert, setAlert] = useState({ show: false, message: "", variant: "" });
+  const [info, setInfo] = useState({ show: false, message: "", variant: "" });
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const token = localStorage.getItem("token");
@@ -121,7 +122,7 @@ function DTSMonitorDashboard() {
 
   const openEditModal = () => {
     //alert("Edit LCE Reply functionality to be implemented.");
-    setAlert({ show: true, message: "Edit LCE Reply functionality to be implemented.", variant: "info" });
+    setInfo({ show: true, message: "Edit LCE Reply functionality to be implemented.", variant: "info" });
     //setShowModal(true);
   }
   const openPrintModal = (tracker) => {
@@ -174,7 +175,25 @@ function DTSMonitorDashboard() {
           </Card>
         </Col>
       </Row>
-      {error && <Alert variant="danger">{error}</Alert>}
+      {error && (
+        <Alert
+          variant="danger"
+          onClose={() => setError(null)}
+          dismissible
+        >
+          {error}
+        </Alert>
+      )}
+      {info.show && (
+        <Alert
+          variant={info.variant || "info"}
+          onClose={() => setInfo({ ...info, show: false })}
+          dismissible
+          timeout={5000}
+        >
+          {info.message}
+        </Alert>
+      )}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <InputGroup style={{ maxWidth: "300px" }}>
           <FormControl
@@ -322,7 +341,7 @@ function DTSMonitorDashboard() {
                   }}
                 />
               )}
-              <br /><span className="d-block mt-3">{qrTracker._id}</span>
+              <br /><span className="mt-3">{qrTracker._id}</span>
               <Table border size="sm">
                 <tbody>
                   <tr>
