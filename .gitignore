@@ -3,11 +3,12 @@
 /error.log
 /exceptions.log
 /node_modules
+/.yarn
+/.yarn/*
 /package-lock.json
 core.*
 
-# Build directories
-/.yarn
+# Build directories and frontend specific files
 ./yarn-error.log
 /.next
 /.nuxt
