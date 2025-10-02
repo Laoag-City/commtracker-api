@@ -11,7 +11,7 @@ const commTrackersController = {
 
   createTracker: async (req, res) => {
     try {
-      const { fromName, documentTitle, dateReceived, recipient } = req.body;
+      const { fromName, documentTitle, dateReceived, lceAction, lceActionDate, lceKeyedInAction, lceRemarks, recipient } = req.body;
       if (!fromName || !documentTitle || !dateReceived) {
         return res.status(400).json({ message: 'Required fields are missing' });
       }
@@ -43,7 +43,7 @@ const commTrackersController = {
       }
 
       const tracker = new CommTrackers({
-        fromName, documentTitle, dateReceived, recipient: parsedRecipient, attachment: fileId,
+        fromName, documentTitle, dateReceived, lceAction, lceActionDate, lceKeyedInAction, lceRemarks, recipient: parsedRecipient, attachment: fileId,
         attachmentMimeType: req.file ? req.file.mimetype : null,
         auditTrail: [{ action: 'create', modifiedBy: user, changes: { fromName, documentTitle, dateReceived } }],
       });
@@ -110,72 +110,7 @@ const commTrackersController = {
       res.status(500).json({ message: 'Error fetching tracker', error: error.message });
     }
   },
-  // Update a tracker
-  // TODO: Add validation for recipient object
-  /*   updateTrackerById: async (req, res) => {
-      try {
-        const { id } = req.params;
-        const { recipient, ...updateFields } = req.body;
-        const user = req.body?.username || 'Unknown';
-        const parsedRecipient = typeof recipient === "string" ? JSON.parse(recipient) : recipient;
-  
-        // Initialize GridFS Bucket if a new file is provided
-        let fileId = null;
-        if (req.file) {
-          const fileBuffer = req.file.buffer;
-          const fileMimeType = req.file.mimetype;
-  
-          const bucket = new GridFSBucket(mongoose.connection.db, {
-            bucketName: 'attachments'
-          });
-  
-          const uploadStream = bucket.openUploadStream(req.file.originalname, {
-            contentType: fileMimeType,
-            metadata: { user: user }
-          });
-  
-          uploadStream.end(fileBuffer);
-          fileId = uploadStream.id; // Get the fileId from GridFS
-        }
-  
-        const originalTracker = await CommTrackers.findById(id);
-        if (!originalTracker) {
-          return res.status(404).json({ message: "Tracker not found" });
-        }
-  
-        const changes = {};
-        for (const key in updateFields) {
-          if (updateFields[key] !== originalTracker[key]) {
-            changes[key] = updateFields[key];
-          }
-        }
-  
-        if (fileId) {
-          updateFields.attachment = fileId;
-        }
-  
-        const updatedTracker = await CommTrackers.findByIdAndUpdate(
-          id,
-          {
-            ...updateFields,
-            recipient: parsedRecipient,
-            $push: {
-              auditTrail: {
-                action: 'update',
-                modifiedBy: user,
-                changes,
-              },
-            },
-          },
-          { new: true, runValidators: true }
-        );
-  
-        res.status(200).json(updatedTracker);
-      } catch (error) {
-        logger.error('Error updating tracker', { error: error.message });
-        res.status(400).json({ message: 'Error updating tracker', error: error.message });
-      }
-    } */
+
   updateTrackerById: async (req, res) => {
     try {
       const { id } = req.params;
@@ -193,6 +128,10 @@ const commTrackersController = {
         fromName: req.body.fromName,
         documentTitle: req.body.documentTitle,
         dateReceived: req.body.dateReceived,
+        lceAction: req.body.lceAction,
+        lceKeyedInAction: req.body.lceKeyedInAction,
+        lceActionDate: req.body.lceActionDate,
+        lceRemarks: req.body.lceRemarks,
       };
       //console.log("Update fields:", updateFields);
       // Parse recipient array
@@ -408,18 +347,7 @@ const commTrackersController = {
       return res.status(500).json({ error: 'An error occurred while updating recipient data.' });
     }
   },
-  /**
-  * Filter receivingDepartment records
-  * @param {Object} req - Express request object
-  * @param {Object} res - Express response object
-  */
-  // Filter receivingDepartment records
-  // TODO add department name to the response
-  /**
- * Filter receivingDepartment records with pagination
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- */
+  // Filter trackers by recipient fields with pagination
   filterReceivingDepartments: async (req, res) => {
     try {
       const { receivingDepartment, status, isSeen, dateSeenFrom, dateSeenTo, page = 1, limit = 10 } = req.query;
@@ -468,6 +396,12 @@ const commTrackersController = {
             fromName: { $first: '$fromName' },
             documentTitle: { $first: '$documentTitle' },
             dateReceived: { $first: '$dateReceived' },
+            lceAction: { $first: '$lceAction' },
+            lceActionDate: { $first: '$lceActionDate' },
+            lceKeyedInAction: { $first: '$lceKeyedInAction' },
+            lceRemarks: { $first: '$lceRemarks' },
+            dateCreated: { $first: '$createdAt' },
+            dateUpdated: { $first: '$updatedAt' },
             serialNumber: { $first: '$serialNumber' },
             status: { $first: '$status' },
             isArchived: { $first: '$isArchived' },
@@ -654,7 +588,7 @@ const commTrackersController = {
       //console.log(id);
       // Populate recipient array
       const tracker = await CommTrackers.findById(id)
-        .select('status serialNumber dateReceived documentTitle isArchived recipient ') // Specify the fields to return
+        .select('status serialNumber dateReceived lceAction lceActionDate lceKeyedInAction lceRemarks documentTitle isArchived recipient ') // Specify the fields to return
         .populate({
           path: 'recipient.receivingDepartment',
           select: 'deptName', // Fields to return within recipient subdocument

@@ -57,9 +57,10 @@ function DTSReceivingDashboard() {
     fromName: "",
     documentTitle: "",
     dateReceived: new Date().toISOString().split('T')[0],
-    lceAction: "approved",
+    lceAction: "pending",
     lceActionKeyedIn: "",
-    lceActionDate: "",
+    lceActionDate: new Date().toISOString().split('T')[0],
+    lceRemarks: "",
     recipient: [],
     attachment: null,
     attachmentMimeType: null,
@@ -208,16 +209,11 @@ function DTSReceivingDashboard() {
   };
 
   const handleSave = async () => {
-    //console.log("Saving tracker:", currentTracker.recipient);
     console.log("Current Tracker State:", currentTracker);
     setError(null);
     if (!currentTracker.fromName || !currentTracker.documentTitle || !currentTracker.dateReceived) {
       setError("Required fields are missing.");
       return;
-    }
-    // Set LCD Date to current date and time if LCE Action is set and not "pending"
-    if (currentTracker.lceAction && currentTracker.lceAction !== "pending" && !currentTracker.lceActionDate) {
-      currentTracker.lceActionDate = new Date().toISOString();
     }
     if (!Array.isArray(currentTracker.recipient) || currentTracker.recipient.length === 0) {
       setError("At least one recipient department must be selected.");
@@ -228,6 +224,11 @@ function DTSReceivingDashboard() {
     formData.append("documentTitle", currentTracker.documentTitle);
     formData.append("dateReceived", currentTracker.dateReceived);
     formData.append("username", currentTracker.username);
+    // Add lce fields
+    formData.append("lceAction", currentTracker.lceAction || "pending");
+    formData.append("lceActionKeyedIn", currentTracker.lceActionKeyedIn || "");
+    formData.append("lceActionDate", currentTracker.lceActionDate || "");
+    formData.append("lceRemarks", currentTracker.lceRemarks || "");
     currentTracker.recipient.forEach((rec, index) => {
       formData.append(`recipient[${index}][receiveDate]`, rec.receiveDate);
       formData.append(`recipient[${index}][receivingDepartment]`, rec.receivingDepartment);
@@ -237,10 +238,6 @@ function DTSReceivingDashboard() {
     if (currentTracker.file) {
       formData.append("file", currentTracker.file);
     }
-
-    //for (let [key, value] of formData.entries()) {
-    //  console.log(`FormData: ${key} = ${value instanceof File ? value.name : value}`);
-    // }
 
     try {
       await axios({
@@ -373,7 +370,7 @@ function DTSReceivingDashboard() {
                   <td>{tracker.fromName}</td>
                   <td>{tracker.documentTitle}</td>
                   <td>{formatDate(tracker.dateReceived)}</td>
-                  <td> {tracker.lceAction}  {tracker.lceActionDate && "/" + formatDate(tracker.lceActionDate)}</td>
+                  <td>{tracker.lceAction} {formatDate(tracker.lceActionDate)}</td>
                   <td>
                     {tracker.recipient.map((rec, idx) => (
                       <div key={idx}>
@@ -540,13 +537,22 @@ function DTSReceivingDashboard() {
               <Form.Select
                 value={currentTracker.lceAction || "pending"}
                 onChange={(e) => {
+                  const newLceAction = e.target.value;
                   setCurrentTracker({
                     ...currentTracker,
-                    lceAction: e.target.value,
+                    lceAction: newLceAction,
+                    // Reset lceKeyedInAction if lceAction is not "others"
+                    lceKeyedInAction: newLceAction === "others" ? currentTracker.lceKeyedInAction : "",
+                    // Set lceActionDate if lceAction is not "pending" and not already set
+                    lceActionDate:
+                      newLceAction && newLceAction !== "pending" && !currentTracker.lceActionDate
+                        ? new Date().toISOString().split('T')[0]
+                        : currentTracker.lceActionDate,
                   });
-                  console.log("Selected LCE Action:", e.target.value);
+                  console.log("Selected LCE Action:", newLceAction);
                 }}
               >
+                <option value="pending">Pending</option>
                 <option value="approved">Approved</option>
                 <option value="disapproved">Disapproved</option>
                 <option value="for your comments">For Your Comments</option>
@@ -560,11 +566,57 @@ function DTSReceivingDashboard() {
                 Select the LCE action for this document.
               </Form.Text>
             </Form.Group>
-
-            {currentTracker.lceAction !== undefined && (
-              <Container className="mb-3 p-0">LCE Acted on: {currentTracker.lceActionDate}</Container>
+            {currentTracker.lceAction === "others" && (
+              <Form.Group className="mb-3">
+                <Form.Label>LCE Keyed-In Action</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={currentTracker.lceActionKeyedIn || ""}
+                  onChange={(e) => {
+                    setCurrentTracker({
+                      ...currentTracker,
+                      lceActionKeyedIn: e.target.value,
+                    });
+                  }}
+                />
+                <Form.Text className="text-muted">
+                  Enter the custom LCE action details.
+                </Form.Text>
+              </Form.Group>
             )}
-
+            <Form.Group className="mb-3">
+              <Form.Label>LCE Action Date</Form.Label>
+              <Form.Control
+                type="date"
+                value={currentTracker.lceActionDate || ""}
+                onChange={(e) => {
+                  setCurrentTracker({
+                    ...currentTracker,
+                    lceActionDate: e.target.value,
+                  });
+                }}
+              />
+              <Form.Text className="text-muted">
+                Select the date of the LCE action.
+              </Form.Text>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>LCE Remarks</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={currentTracker.lceRemarks || ""}
+                onChange={(e) => {
+                  setCurrentTracker({
+                    ...currentTracker,
+                    lceRemarks: e.target.value,
+                  });
+                }}
+              />
+              <Form.Text className="text-muted">
+                Enter any remarks related to the LCE action.
+              </Form.Text>
+            </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Recipient Departments</Form.Label>
               <CustomDualListBox
