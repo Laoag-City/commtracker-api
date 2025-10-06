@@ -309,7 +309,7 @@ const commTrackersController = {
       if (!mongoose.Types.ObjectId.isValid(trackerId) || !mongoose.Types.ObjectId.isValid(recipientId)) {
         return res.status(400).json({ error: 'Invalid trackerId or recipientId.' });
       }
-      const allowedStatuses = ['pending', 'approved', 'rejected', 'in-progress', 'forwarded'];
+      const allowedStatuses = ['pending', 'approved', 'disapproved', 'for your comments', 'for review', 'for dissemination', 'noted', 'check availability of fund', 'others'];
       if (status && !allowedStatuses.includes(status)) {
         return res.status(400).json({ error: 'Invalid status value.' });
       }
