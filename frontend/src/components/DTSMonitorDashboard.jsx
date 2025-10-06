@@ -341,7 +341,7 @@ function DTSMonitorDashboard() {
                   }}
                 />
               )}
-              <br /><span className="mt-3">{qrTracker._id}</span>
+              {/* <br /><span className="mt-3">{qrTracker._id}</span> */}
               <Table border size="sm">
                 <tbody>
                   <tr>
