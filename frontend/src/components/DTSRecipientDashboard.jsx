@@ -64,7 +64,7 @@ const DTSRecipientDashboard = () => {
         setTotalPages(response.data.totalPages);
       }
     } catch (error) {
-      setAlert({ show: true, message: "Failed to fetch documents. Please try again." + error.message, variant: "danger" });
+      setAlert({ show: true, message: "Failed to fetch trackers. Please try again." + error.message, variant: "danger" });
     }
     setLoading(false);
   }, [token, userDeptId, currentPage]);
@@ -79,7 +79,7 @@ const DTSRecipientDashboard = () => {
 
   const handleSaveChanges = async () => {
     if (!selectedDoc) {
-      console.log("No document selected for saving changes.");
+      console.log("No tracker selected");
       return;
     }
     try {
@@ -243,13 +243,13 @@ const DTSRecipientDashboard = () => {
                           ) : recipient.status === "rejected" ? (
                             <X size={20} color="crimson" />
                           ) : (
-                            <Question size={20} color="crimson" />
+                            <Check size={20} color="cornflowerblue" />
                           )}
                         </td>
                         <td>
                           <Button
                             variant="primary"
-                            disabled={recipient.status === 'approved'}
+                            disabled={recipient.status === 'approved' || recipient.status === 'noted'}
                             onClick={() => {
                               setSelectedDoc({
                                 ...doc,
@@ -285,84 +285,87 @@ const DTSRecipientDashboard = () => {
           )}
         </Col>
       </Row>
-      {selectedDoc && selectedDoc.attachment && (
-        <Modal show={showAttachmentModal} onHide={() => setShowAttachmentModal(false)} size="lg">
-          <Modal.Header closeButton>
-            <Modal.Title>PDF Viewer</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div className="d-flex justify-content-end mb-2">
-              <Button
-                variant="primary"
-                onClick={() => {
-                  const iframe = document.createElement('iframe');
-                  iframe.style.position = 'fixed';
-                  iframe.style.right = '0';
-                  iframe.style.bottom = '0';
-                  iframe.style.width = '0';
-                  iframe.style.height = '0';
-                  iframe.style.border = 'none';
-                  iframe.src = `${API_URL}/trackers/files/${selectedDoc.attachment}`;
-                  document.body.appendChild(iframe);
-                  iframe.onload = function () {
-                    iframe.contentWindow.focus();
-                    iframe.contentWindow.print();
-                    setTimeout(() => document.body.removeChild(iframe), 1000);
-                  };
-                }}
-              >
-                Download
-              </Button>
-            </div>
-            <Document
-              file={`${API_URL}/trackers/files/${selectedDoc.attachment}`}
-              onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                {Array.from({ length: numPages || 0 }, (_, index) => (
-                  <Page
-                    key={index}
-                    pageNumber={index + 1}
-                    width={600}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                  />
-                ))}
-              </div>
-            </Document>
-          </Modal.Body>
-        </Modal>
-      )}
-      {selectedDoc && (
-        <Modal show={showModal} onHide={() => setShowModal(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>Reply to Comms</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form>
-              <Form.Group className="mb-3">
-                <Form.Label>Status</Form.Label>
-                <Form.Select
-                  value={selectedDoc?.status || "pending"}
-                  onChange={(e) => setSelectedDoc({ ...selectedDoc, status: e.target.value })}
+      {
+        selectedDoc && selectedDoc.attachment && (
+          <Modal show={showAttachmentModal} onHide={() => setShowAttachmentModal(false)} size="lg">
+            <Modal.Header closeButton>
+              <Modal.Title>PDF Viewer</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <div className="d-flex justify-content-end mb-2">
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    const iframe = document.createElement('iframe');
+                    iframe.style.position = 'fixed';
+                    iframe.style.right = '0';
+                    iframe.style.bottom = '0';
+                    iframe.style.width = '0';
+                    iframe.style.height = '0';
+                    iframe.style.border = 'none';
+                    iframe.src = `${API_URL}/trackers/files/${selectedDoc.attachment}`;
+                    document.body.appendChild(iframe);
+                    iframe.onload = function () {
+                      iframe.contentWindow.focus();
+                      iframe.contentWindow.print();
+                      setTimeout(() => document.body.removeChild(iframe), 1000);
+                    };
+                  }}
                 >
-                  <option value="pending">-Pending-</option>
-                  <option value="approved">Approved</option>
-                  <option value="noted">Noted</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="rejected">Rejected</option>
-                </Form.Select>
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Remarks</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  value={selectedDoc?.remarks || ""}
-                  placeholder="Leave remarks here"
-                  rows={5}
-                  onChange={(e) => setSelectedDoc({ ...selectedDoc, remarks: e.target.value })}
-                />
-                {/*
+                  Download
+                </Button>
+              </div>
+              <Document
+                file={`${API_URL}/trackers/files/${selectedDoc.attachment}`}
+                onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  {Array.from({ length: numPages || 0 }, (_, index) => (
+                    <Page
+                      key={index}
+                      pageNumber={index + 1}
+                      width={600}
+                      renderTextLayer={false}
+                      renderAnnotationLayer={false}
+                    />
+                  ))}
+                </div>
+              </Document>
+            </Modal.Body>
+          </Modal>
+        )
+      }
+      {
+        selectedDoc && (
+          <Modal show={showModal} onHide={() => setShowModal(false)}>
+            <Modal.Header closeButton>
+              <Modal.Title>Reply to Comms</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <Form>
+                <Form.Group className="mb-3">
+                  <Form.Label>Status</Form.Label>
+                  <Form.Select
+                    value={selectedDoc?.status || "pending"}
+                    onChange={(e) => setSelectedDoc({ ...selectedDoc, status: e.target.value })}
+                  >
+                    <option value="pending">-Pending-</option>
+                    <option value="approved">Approved</option>
+                    <option value="noted">Noted</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="rejected">Rejected</option>
+                  </Form.Select>
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Remarks</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    value={selectedDoc?.remarks || ""}
+                    placeholder="Leave remarks here"
+                    rows={5}
+                    onChange={(e) => setSelectedDoc({ ...selectedDoc, remarks: e.target.value })}
+                  />
+                  {/*
                 <div className="mb-3">
                   {["Action taken", "Reviewed", "Please forward", "Needs clarification", "Others"].map((remark) => (
                     <Form.Check
@@ -377,33 +380,34 @@ const DTSRecipientDashboard = () => {
                   ))}
                 </div>
                 */}
-                {useOtherRemarks && (
-                  <Form.Control
-                    as="textarea"
-                    value={selectedDoc?.remarks || ""}
-                    onChange={(e) => setSelectedDoc({ ...selectedDoc, remarks: e.target.value })}
-                    placeholder="Enter other remarks..."
-                  />
-                )}
-                {selectedRemarks.length > 0 && !useOtherRemarks && (
-                  <Alert variant="info" className="mt-2">
-                    Selected Remarks: {selectedRemarks.join(", ")}
-                  </Alert>
-                )}
-              </Form.Group>
-            </Form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => unsetStates()}>
-              Close
-            </Button>
-            <Button variant="primary" disabled={selectedDoc.status === 'pending'} onClick={handleSaveChanges}>
-              Save Changes
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      )}
-    </Container>
+                  {useOtherRemarks && (
+                    <Form.Control
+                      as="textarea"
+                      value={selectedDoc?.remarks || ""}
+                      onChange={(e) => setSelectedDoc({ ...selectedDoc, remarks: e.target.value })}
+                      placeholder="Enter other remarks..."
+                    />
+                  )}
+                  {selectedRemarks.length > 0 && !useOtherRemarks && (
+                    <Alert variant="info" className="mt-2">
+                      Selected Remarks: {selectedRemarks.join(", ")}
+                    </Alert>
+                  )}
+                </Form.Group>
+              </Form>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => unsetStates()}>
+                Close
+              </Button>
+              <Button variant="primary" disabled={selectedDoc.status === 'pending'} onClick={handleSaveChanges}>
+                Save Changes
+              </Button>
+            </Modal.Footer>
+          </Modal>
+        )
+      }
+    </Container >
   );
 };
 
