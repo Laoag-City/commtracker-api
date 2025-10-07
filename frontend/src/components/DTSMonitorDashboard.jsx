@@ -38,6 +38,7 @@ function DTSMonitorDashboard() {
   const [documentCount, setDocumentCount] = useState(0);
   const [loading, setLoading] = useState(false);
   //  const [alert, setAlert] = useState({ show: false, message: "", variant: "" });
+  const [currentTracker, setCurrentTracker] = useState(null);
   const [info, setInfo] = useState({ show: false, message: "", variant: "" });
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -167,7 +168,7 @@ function DTSMonitorDashboard() {
         <Col md={12} className="p-3">
           <Card className="mb-3">
             <Card.Body>
-              <Card.Title>DTS Monitor Home</Card.Title>
+              <Card.Title>Hello - {userName}</Card.Title>
               <Card.Text>
                 Active Documents: {documentCount} | Current Page: {currentPage} | Total Pages: {totalPages}
               </Card.Text>
@@ -253,8 +254,8 @@ function DTSMonitorDashboard() {
                       </div>
                     ))}
                   </td>
-                  <td>{tracker.lceReply || <PencilSquare size={20} onClick={openEditModal} />} {tracker.lceReplyDate && "/" + formatDate(tracker.lceReplyDate)}</td>
-                  <td>
+                  <td className="text-center">{tracker.lceReply || <PencilSquare size={20} onClick={openEditModal} />} {tracker.lceReplyDate && "/" + formatDate(tracker.lceReplyDate)}</td>
+                  <td className="text-center">
                     <OverlayTrigger
                       placement="top"
                       overlay={<Tooltip>Print Reply Slip</Tooltip>}
@@ -289,6 +290,23 @@ function DTSMonitorDashboard() {
           </Pagination>
         </>
       )}
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Edit LCE Reply</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {/* Edit LCE Reply form to be implemented */}
+          <p>Feature to edit LCE Reply will be implemented here.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={() => setShowModal(false)}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <Modal show={showPrintModal} onHide={() => setShowPrintModal(false)} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Print Reply Slip</Modal.Title>
