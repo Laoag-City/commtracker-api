@@ -352,8 +352,6 @@ const DTSRecipientDashboard = () => {
                     <option value="pending">-Pending-</option>
                     <option value="approved">Approved</option>
                     <option value="noted">Noted</option>
-                    <option value="for compliance">For Compliance</option>
-                    <option value="pls facilitate">Please Facilitate</option>
                     <option value="in-progress">In Progress</option>
                     <option value="rejected">Rejected</option>
                   </Form.Select>

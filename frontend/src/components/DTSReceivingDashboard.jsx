@@ -572,6 +572,8 @@ function DTSReceivingDashboard() {
                 <option value="for your comments">For Your Comments</option>
                 <option value="for review">For Review</option>
                 <option value="for dissemination">For Dissemination</option>
+                <option value="for compliance">For Compliance</option>
+                <option value="pls facilitate">Please Facilitate</option>
                 <option value="noted">Noted</option>
                 <option value="check availability of fund">Check Availability of Fund</option>
                 <option value="others">Others</option>
