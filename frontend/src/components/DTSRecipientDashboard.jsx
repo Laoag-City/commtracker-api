@@ -69,6 +69,19 @@ const DTSRecipientDashboard = () => {
     setLoading(false);
   }, [token, userDeptId, currentPage]);
 
+  const setTrackerAsSeen = async (trackerId) => {
+    try {
+      const response = await axios.put(`${API_URL}/trackers/${trackerId}/seen`, null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.success) {
+        fetchDocuments();
+      }
+    } catch (error) {
+      setAlert({ show: true, message: "Failed to mark tracker as seen. Please try again." + error.message, variant: "danger" });
+    }
+  };
+
   useEffect(() => {
     fetchDocuments();
   }, [fetchDocuments]);
@@ -238,13 +251,9 @@ const DTSRecipientDashboard = () => {
                           </OverlayTrigger>
                         </td>
                         <td>
-                          {recipient.status === 'approved' ? (
+                          {(recipient.status === 'approved' || recipient.status === 'noted') ? (
                             <Check size={20} color="cornflowerblue" />
-                          ) : recipient.status === "rejected" ? (
-                            <X size={20} color="crimson" />
-                          ) : (
-                            <Check size={20} color="cornflowerblue" />
-                          )}
+                          ) : recipient.status === "rejected"}
                         </td>
                         <td>
                           <Button
