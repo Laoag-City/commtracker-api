@@ -34,3 +34,4 @@ frontend/.vercel_build_output
 frontend/dist
 frontend/.env
 frontend/.yarn
+./yarn/install-state.gz
