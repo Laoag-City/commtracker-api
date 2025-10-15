@@ -396,7 +396,7 @@ function DTSReceivingDashboard() {
                         {rec.status === "pending" ? (<span className="text-warning">Pending</span>) :
                           rec.status === "approved" ? (<span className="text-success">Approved</span>) :
                             rec.status === "rejected" ? (<span className="text-danger">Rejected</span>) :
-                              (<span className="text-secondary">Unknown Status</span>)}
+                              (<span className="text-info">{rec.status}</span>)}
                         <span className="text-muted">{rec.remarks ? ` - ${rec.remarks}` : ""}</span>
                         <span className="text-muted">{rec.dateSeen ? ` - ${formatDate(rec.dateSeen)}` : " - N/A"}</span>
                       </div>
