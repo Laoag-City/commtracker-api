@@ -253,7 +253,12 @@ const DTSRecipientDashboard = () => {
                         <td>
                           {(recipient.status === 'approved' || recipient.status === 'noted') ? (
                             <Check size={20} color="cornflowerblue" />
-                          ) : recipient.status === "rejected"}
+                          ) : recipient.status === "rejected" ? (
+                            <X size={20} color="crimson" />
+                          ) : (
+                            <X size={20} color="crimson" />
+                          )}
+
                         </td>
                         <td>
                           <Button
