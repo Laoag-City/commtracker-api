@@ -19,7 +19,7 @@ const recipientSchema = new mongoose.Schema({
   status: {
     type: String,
     default: 'pending',
-    enum: ['pending', 'approved', 'rejected', 'in-progress', 'forwarded']
+    enum: ['pending', 'approved', 'noted', 'in-progress', 'rejected', 'forwarded']
   }
 }, {
   timestamps: true

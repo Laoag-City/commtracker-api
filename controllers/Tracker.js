@@ -309,7 +309,8 @@ const commTrackersController = {
       if (!mongoose.Types.ObjectId.isValid(trackerId) || !mongoose.Types.ObjectId.isValid(recipientId)) {
         return res.status(400).json({ error: 'Invalid trackerId or recipientId.' });
       }
-      const allowedStatuses = ['for compliance', 'pls facilitate', 'rejected', 'pending', 'in-progress', 'approved', 'disapproved', 'for your comments', 'for review', 'for dissemination', 'noted', 'check availability of fund', 'others'];
+      const allowedStatuses = ['pending', 'approved', 'noted', 'in-progress', 'rejected', 'forwarded'];
+      //const allowedStatuses = ['for compliance', 'pls facilitate', 'rejected', 'pending', 'in-progress', 'approved', 'disapproved', 'for your comments', 'for review', 'for dissemination', 'noted', 'check availability of fund', 'others'];
       if (status && !allowedStatuses.includes(status)) {
         return res.status(400).json({ error: 'Invalid status value.' });
       }
@@ -325,6 +326,7 @@ const commTrackersController = {
           $set: {
             'recipient.$.status': status,
             'recipient.$.isSeen': isSeen === 'true',
+            'recipient.$.dateSeen': isSeen === 'true' ? new Date() : null,
             'recipient.$.remarks': remarks,
           },
           $push: {
