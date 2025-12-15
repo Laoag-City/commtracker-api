@@ -51,7 +51,7 @@ const trackerSchema = new mongoose.Schema({
 });
 
 // Pre-save hook to generate serial number and add audit trail
-trackerSchema.pre('save', async function (next) {
+trackerSchema.pre('save', async function () {
   try {
     // Generate serial number for new documents
     if (this.isNew) {
@@ -90,9 +90,11 @@ trackerSchema.pre('save', async function (next) {
         changes
       });
     }
-    next();
+    // For async middleware, return/resolve normally. Do not call next().
+    return;
   } catch (error) {
-    next(error);
+    // Throw so Mongoose can handle the rejected promise
+    throw error;
   }
 });
 
